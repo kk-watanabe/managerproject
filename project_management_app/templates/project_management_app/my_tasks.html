@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マイタスク</title>
+</head>
+<body>
+    <h1>自タスク一覧</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+    
+    <ul>
+        {% for task in tasks %}
+            <li>
+                {{ task.title }}
+                ({{ task.project.name }})
+                - {{ task.progress_rate }}%
+                {% if task.is_delayed %}
+                    <strong>【遅延】</strong>
+                {% endif %}
+                <a href="{% url 'task_update' task.pk %}">更新</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>トップ</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'project_management_app/home.css' %}">
+</head>
+<body>
+    <div class="header">
+        <h1>開発管理統合アプリ</h1>
+
+        <div class="header-menu">
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-link">ログアウト</button>
+            </form>
+        </div>
+    </div>
+
+    <hr>
+
+    <h2>{{ request.user.get_role_display }}トップ</h2>
+
+    {% if request.user.role == "member" or request.user.role == "applicant" %}
+        <h3>タスクメニュー</h3>
+        <a href="{% url 'my_tasks' %}">自タスク一覧</a>
+    {% endif %}
+
+    {% if request.user.role == "applicant" %}
+        <h3>申請メニュー</h3>
+        <a href="{% url 'project_create' %}">新規案件申請</a>
+        <a href="{% url 'my_projects' %}">自案件一覧</a>
+    {% endif %}
+
+    {% if request.user.role == "manager" %}
+        <h3>部門承認メニュー</h3>
+        <a href="{% url 'department_approval_list' %}">
+            一次承認待ち一覧
+        </a>
+    {% endif %}
+
+    {% if request.user.role == "hq" %}
+        <h3>本部承認メニュー</h3>
+        <a href="{% url 'hq_approval_list' %}">
+            最終承認待ち一覧
+        </a>
+    {% endif %}
+</body>
+</html>

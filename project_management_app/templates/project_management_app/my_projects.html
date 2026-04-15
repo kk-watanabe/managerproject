@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>自案件一覧</title>
+</head>
+<body>
+    <h1>自案件一覧</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'project_create' %}">新規案件申請</a>
+
+    <ul>
+        {% for project in projects %}
+            <li>
+                {{ project.name }}
+                - {{ project.get_status_display }}
+                - 進捗 {{ project.progress_rate }}%
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

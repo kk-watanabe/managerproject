@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>一次承認</title>
+</head>
+<body>
+    <h1>一次承認</h1>
+
+    <h2>{{ project.name }}</h2>
+    <p>{{ project.description }}</p>
+    <p>予算: {{ project.estimated_budget }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">確定</button>
+    </form>
+</body>
+</html>
