@@ -9,6 +9,7 @@ from .views import (
     DepartmentApprovalView,
     HQApprovalListView,
     HQApprovalView,
+    NotificationListView,
 )
 
 urlpatterns = [
@@ -25,4 +26,6 @@ urlpatterns = [
 
     path("hq/approvals/", HQApprovalListView.as_view(), name="hq_approval_list"),
     path("hq/approvals/<int:pk>/", HQApprovalView.as_view(), name="hq_approval"),
+
+    path("notifications/", NotificationListView.as_view(), name="notifications"),
 ]

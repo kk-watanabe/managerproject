@@ -2,9 +2,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView
 from django.urls import reverse_lazy
-from .models import Project, Task, CustomUser, Approval
+from .models import Project, Task, CustomUser, Approval, Notification
 from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm
 from django.contrib import messages
+from .utils import create_notification
 
 # Create your views here.
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -78,8 +79,22 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.applicant = self.request.user
         form.instance.status = Project.Status.PENDING_MANAGER
+        response = super().form_valid(form)
+
+        managers = CustomUser.objects.filter(
+        department=form.instance.department,
+        role=CustomUser.Role.MANAGER,
+        )
+
+        for manager in managers:
+            create_notification(
+                recipient=manager,
+                project=form.instance,
+                message=f"新規案件『{form.instance.name}』の承認依頼があります。",
+            )
+        
         messages.success(self.request, "案件を申請しました。")
-        return super().form_valid(form)
+        return response
 
 
 class MyProjectListView(LoginRequiredMixin, ListView):
@@ -140,6 +155,17 @@ class DepartmentApprovalView(LoginRequiredMixin, FormView):
 
         self.project.save(update_fields=["status", "updated_at"])
 
+        hq_users = CustomUser.objects.filter(
+            role=CustomUser.Role.HQ
+        )
+
+        for hq_user in hq_users:
+            create_notification(
+                recipient=hq_user,
+                project=self.project,
+                message=f"案件『{self.project.name}』が本部承認待ちです。",
+            )
+        
         messages.success(self.request, "一次承認を完了しました。")
         return redirect("department_approval_list")
 
@@ -190,6 +216,12 @@ class HQApprovalView(LoginRequiredMixin, FormView):
 
         self.project.save(update_fields=["status", "updated_at"])
 
+        create_notification(
+            recipient=self.project.applicant,
+            project=self.project,
+            message=f"案件『{self.project.name}』が最終承認されました。",
+        )
+        
         messages.success(self.request, "最終承認を完了しました。")
         return redirect("hq_approval_list")
 
@@ -197,3 +229,14 @@ class HQApprovalView(LoginRequiredMixin, FormView):
         context = super().get_context_data(**kwargs)
         context["project"] = self.project
         return context
+
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = "project_management_app/notifications.html"
+    context_object_name = "notifications"
+
+    def get_queryset(self):
+        return self.request.user.notifications.select_related(
+            "project"
+        ).order_by("-created_at")

@@ -11,6 +11,7 @@
         <h1>開発管理統合アプリ</h1>
 
         <div class="header-menu">
+            <a href="{% url 'notifications' %}">通知一覧</a>
             <form method="post" action="{% url 'logout' %}" class="logout-form">
                 {% csrf_token %}
                 <button type="submit" class="logout-link">ログアウト</button>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>通知一覧</title>
+</head>
+<body>
+    <h1>通知一覧</h1>
+
+    <ul>
+        {% for notification in notifications %}
+            <li>
+                {{ notification.message }}
+                ({{ notification.created_at }})
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
