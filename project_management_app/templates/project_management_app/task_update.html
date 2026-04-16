@@ -1,19 +1,18 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>タスク更新</title>
-</head>
-<body>
-    <h1>{{ object.title }}</h1>
-    <p>案件: {{ object.project.name }}</p>
+{% extends "project_management_app/base.html" %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">更新</button>
-    </form>
+{% block title %}タスク更新{% endblock %}
 
-    <a href="{% url 'my_tasks' %}">一覧へ戻る</a>
-</body>
-</html>
+{% block content %}
+<h1>{{ object.title }}</h1>
+<p>案件: {{ object.project.name }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">更新</button>
+</form>
+
+<br>
+
+<a href="{% url 'my_tasks' %}">一覧へ戻る</a>
+{% endblock %}

@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>案件申請</title>
-</head>
-<body>
+{% extends "project_management_app/base.html" %}
+
+{% block title %}新規案件申請{% endblock %}
+
+{% block content %}
     <h1>新規案件申請</h1>
 
     <form method="post">
@@ -13,6 +11,7 @@
         <button type="submit">申請する</button>
     </form>
 
+    <br>
+
     <a href="{% url 'my_projects' %}">自案件一覧へ</a>
-</body>
-</html>
+{% endblock %}

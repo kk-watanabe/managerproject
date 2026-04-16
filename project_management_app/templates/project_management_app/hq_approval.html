@@ -1,21 +1,18 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>本部最終承認</title>
-</head>
-<body>
-    <h1>本部最終承認</h1>
+{% extends "project_management_app/base.html" %}
+{% load humanize %}
+{% block title %}本部最終承認{% endblock %}
 
-    <h2>{{ project.name }}</h2>
-    <p>部門: {{ project.department.name }}</p>
-    <p>{{ project.description }}</p>
-    <p>予算: {{ project.estimated_budget }}</p>
+{% block content %}
+<h1>本部最終承認</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">確定</button>
-    </form>
-</body>
-</html>
+<h2>{{ project.name }}</h2>
+<p>部門: {{ project.department.name }}</p>
+<p>{{ project.description }}</p>
+<p>予算: {{ project.estimated_budget|intcomma }} 円</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">確定</button>
+</form>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "project_management_app/base.html" %}
+{% load humanize %}
+{% block title %}予算実績入力{% endblock %}
+
+{% block content %}
+<h2>予算実績入力</h2>
+
+<p>案件名: {{ view.project.name }}</p>
+<p>案件予算: {{ view.project.estimated_budget|intcomma }} 円</p>
+<p>現在消費率: {{ view.project.consumption_rate }} %</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">登録</button>
+</form>
+{% endblock %}

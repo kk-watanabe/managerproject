@@ -1,29 +1,29 @@
 {% extends "project_management_app/base.html" %}
 
-{% block title %}自案件一覧{% endblock %}
+{% block title %}全案件一覧{% endblock %}
 
 {% block content %}
-<h2>自案件一覧</h2>
-<table>
+<h1>全案件一覧</h1>
+
+<table border="1">
     <tr>
         <th>案件名</th>
+        <th>部門</th>
+        <th>申請者</th>
         <th>ステータス</th>
         <th>進捗</th>
         <th>予算消費率</th>
         <th></th>
-        <th></th>
     </tr>
+
     {% for project in projects %}
     <tr>
         <td>{{ project.name }}</td>
+        <td>{{ project.department.name }}</td>
+        <td>{{ project.applicant.username }}</td>
         <td>{{ project.get_status_display }}</td>
         <td>{{ project.progress_rate }}%</td>
         <td>{{ project.consumption_rate }}%</td>
-        <td>
-            <a href="{% url 'budget_record_add' project.pk %}">
-                実績入力
-            </a>
-        </td>
         <td>
             <a href="{% url 'project_detail' project.pk %}">
                 詳細

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -19,7 +19,7 @@ class Department(models.Model):
 
 class CustomUser(AbstractUser):
     class Role(models.TextChoices):
-        MEMBER = "member", "一般担当者"
+        MEMBER = "member", "担当者"
         APPLICANT = "applicant", "申請者"
         MANAGER = "manager", "部門管理者"
         HQ = "hq", "本部管理者"
@@ -74,10 +74,10 @@ class Project(models.Model):
         related_name="projects",
     )
     estimated_budget = models.DecimalField(
-        "予算額", max_digits=12, decimal_places=2
+        "予算額", max_digits=12, decimal_places=0
         )
     actual_amount = models.DecimalField(
-        "実績額", max_digits=12, decimal_places=2, default=0
+        "実績額", max_digits=12, decimal_places=0, default=0
     )
     progress_rate = models.PositiveIntegerField(
         "全体進捗率",
@@ -103,11 +103,19 @@ class Project(models.Model):
         ordering = ["-created_at"]
     
     @property
+    def total_actual_amount(self):
+        return (
+            self.budget_records.aggregate(
+                total=Sum("amount")
+            )["total"] or 0
+        )
+    
+    @property
     def consumption_rate(self):
         if not self.estimated_budget:
             return 0
         return round(
-            (self.actual_amount / self.estimated_budget) * 100, 1
+            (self.total_actual_amount / self.estimated_budget) * 100, 1
         )
 
     @property
@@ -254,3 +262,31 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"{self.recipient.username}: {self.message[:20]}"
+    
+
+class BudgetRecord(models.Model):
+    project = models.ForeignKey(
+        Project,
+        verbose_name="案件",
+        on_delete=models.CASCADE,
+        related_name="budget_records",
+    )
+    item_name = models.CharField("項目名", max_length=100)
+    amount = models.DecimalField(
+        "実績額",
+        max_digits=12,
+        decimal_places=0,
+    )
+    recorded_at = models.DateField(
+        "計上日",
+        default=timezone.now
+    )
+    note = models.TextField("備考", blank=True)
+
+    class Meta:
+        verbose_name = "予算実績"
+        verbose_name_plural = "予算実績"
+        ordering = ["-recorded_at", "-id"]
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.item_name}"

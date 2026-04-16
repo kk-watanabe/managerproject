@@ -1,22 +1,19 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>部門承認一覧</title>
-</head>
-<body>
-    <h1>一次承認待ち案件</h1>
+{% extends "project_management_app/base.html" %}
 
-    <ul>
-        {% for project in projects %}
-            <li>
-                {{ project.name }}
-                - {{ project.applicant.username }}
-                <a href="{% url 'department_approval' project.pk %}">
-                    承認
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% block title %}一次承認待ち{% endblock %}
+
+{% block content %}
+<h1>一次承認待ち案件</h1>
+
+<ul>
+    {% for project in projects %}
+        <li>
+            {{ project.name }}
+            - {{ project.applicant.username }}
+            <a href="{% url 'department_approval' project.pk %}">
+                承認
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "project_management_app/base.html" %}
+{% load humanize %}
+{% block title %}案件詳細{% endblock %}
+
+{% block content %}
+<h2>{{ project.name }}</h2>
+
+<p>概要: {{ project.description }}</p>
+<p>部門: {{ project.department.name }}</p>
+<p>申請者: {{ project.applicant.username }}</p>
+<p>進捗率: {{ project.progress_rate }} %</p>
+<p>予算: {{ project.estimated_budget|intcomma }} 円</p>
+<p>実績合計: {{ project.total_actual_amount|intcomma }} 円</p>
+<p>消費率: {{ project.consumption_rate }} %</p>
+
+<hr>
+
+<h3>タスク一覧</h3>
+<table>
+    <tr>
+        <th>タスク</th>
+        <th>担当者</th>
+        <th>進捗</th>
+        <th>期限</th>
+    </tr>
+    {% for task in project.tasks.all %}
+    <tr>
+        <td>{{ task.title }}</td>
+        <td>{{ task.assignee }}</td>
+        <td>{{ task.progress_rate }}%</td>
+        <td>{{ task.due_date }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h3>予算実績</h3>
+<table>
+    <tr>
+        <th>項目</th>
+        <th>金額</th>
+        <th>計上日</th>
+    </tr>
+    {% for record in project.budget_records.all %}
+    <tr>
+        <td>{{ record.item_name }}</td>
+        <td>{{ record.amount|intcomma }} 円</td>
+        <td>{{ record.recorded_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h3>承認履歴</h3>
+<table>
+    <tr>
+        <th>段階</th>
+        <th>承認者</th>
+        <th>結果</th>
+        <th>日時</th>
+    </tr>
+    {% for approval in project.approvals.all %}
+    <tr>
+        <td>{{ approval.get_level_display }}</td>
+        <td>{{ approval.approver.username }}</td>
+        <td>{{ approval.get_examination_display }}</td>
+        <td>{{ approval.examined_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br><br>
+
+{% endblock %}

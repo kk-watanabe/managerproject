@@ -7,6 +7,7 @@ from .models import(
     Task,
     Approval,
     Notification,
+    BudgetRecord,
 )
 
 # Register your models here.
@@ -48,6 +49,11 @@ class TaskInline(admin.TabularInline):
     )
 
 
+class BudgetRecordInline(admin.TabularInline):
+    model = BudgetRecord
+    extra = 1
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
@@ -63,7 +69,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = ("status", "department")
     search_fields = ("name", "description")
     ordering = ("-created_at",)
-    inlines = [TaskInline]
+    inlines = [TaskInline, BudgetRecordInline]
 
 
 @admin.register(Task)
@@ -80,6 +86,17 @@ class TaskAdmin(admin.ModelAdmin):
     list_filter = ("status", "project")
     search_fields = ("title", "description")
     ordering = ("due_date",)
+
+@admin.register(BudgetRecord)
+class BudgetRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "project",
+        "item_name",
+        "amount",
+        "recorded_at",
+    )
+    list_filter = ("recorded_at", "project")
+    search_fields = ("item_name", "project__name")
 
 
 @admin.register(Approval)

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Task, Project, Approval
+from .models import Task, Project, Approval, BudgetRecord
 
 class TaskUpdateForm(forms.ModelForm):
     class Meta:
@@ -32,3 +32,9 @@ class ApprovalForm(forms.ModelForm):
         widgets = {
             "comment": forms.Textarea(attrs={"rows": 3}),
         }
+
+
+class BudgetRecordForm(forms.ModelForm):
+    class Meta:
+        model = BudgetRecord
+        fields = ["item_name", "amount", "recorded_at", "note"]
