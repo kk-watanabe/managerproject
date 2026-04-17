@@ -17,7 +17,12 @@
 
     {% for project in projects %}
     <tr>
-        <td>{{ project.name }}</td>
+        <td>
+            {{ project.name }}
+            {% if project.is_over_budget %}
+                <span class="warning">⚠ 予算超過</span>
+            {% endif %}
+        </td>
         <td>{{ project.applicant.username }}</td>
         <td>{{ project.get_status_display }}</td>
         <td>{{ project.progress_rate }}%</td>

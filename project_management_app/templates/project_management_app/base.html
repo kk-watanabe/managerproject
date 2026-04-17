@@ -9,10 +9,15 @@
 <body>
     <header class="header">
         <h1>開発管理統合アプリ</h1>
-
+        
         <nav>
             <a href="{% url 'home' %}">ホーム</a>
-            <a href="{% url 'notifications' %}">通知</a>
+            <a href="{% url 'notifications' %}" class="notification-link {% if unread_notification_count > 0 %}unread{% endif %}">
+                通知
+                {% if unread_notification_count > 0 %}
+                    <span class="badge">{{ unread_notification_count }}</span>
+                {% endif %}
+            </a>
 
             <form method="post" action="{% url 'logout' %}" class="logout-form">
                 {% csrf_token %}

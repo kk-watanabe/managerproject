@@ -1,0 +1,13 @@
+{% extends "project_management_app/base.html" %}
+
+{% block title %}新規タスク追加{% endblock %}
+
+{% block content %}
+    <h1>新規タスク追加</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">追加する</button>
+    </form>
+{% endblock %}

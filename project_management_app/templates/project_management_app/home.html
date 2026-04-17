@@ -13,18 +13,33 @@
 
 {% if request.user.role == "member" or request.user.role == "applicant" %}
     <h3>担当者メニュー</h3>
-    <a href="{% url 'my_tasks' %}">タスク一覧</a>
+    <a href="{% url 'my_tasks' %}">
+        タスク一覧
+        {% if project.has_delayed_tasks %}
+            <span class="warning">⚠ 遅延あり</span>
+        {% endif %}
+    </a>
 {% endif %}
 
 {% if request.user.role == "manager" %}
     <h3>部門管理メニュー</h3>
     <a href="{% url 'department_project_list' %}">自部門案件一覧</a><br>
-    <a href="{% url 'department_approval_list' %}">一次承認待ち一覧</a>
+    <a href="{% url 'department_approval_list' %}" class="approval-link {% if pending_approval_count > 0 %}unread{% endif %}">
+        一次承認待ち一覧
+        {% if pending_approval_count > 0 %}
+            <span class="badge">{{ pending_approval_count }}</span>
+        {% endif %}
+    </a>
 {% endif %}
 
 {% if request.user.role == "hq" %}
     <h3>本部管理メニュー</h3>
     <a href="{% url 'hq_project_list' %}">全案件一覧</a><br>
-    <a href="{% url 'hq_approval_list' %}">最終承認待ち一覧</a>
+    <a href="{% url 'hq_approval_list' %}" class="approval-link {% if pending_approval_count > 0 %}unread{% endif %}">
+        最終承認待ち一覧
+        {% if pending_approval_count > 0 %}
+            <span class="badge">{{ pending_approval_count }}</span>
+        {% endif %}
+    </a>
 {% endif %}
 {% endblock %}

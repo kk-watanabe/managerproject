@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView, DetailView
+from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView, DetailView, View
 from django.urls import reverse_lazy
-from .models import Project, Task, CustomUser, Approval, Notification, BudgetRecord
-from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm
+from .models import Project, Task, CustomUser, Approval, Notification, BudgetRecord, Department
+from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm, TaskCreateForm
 from django.contrib import messages
 from .utils import create_notification
-from django.db.models import Q
+from django.db.models import Q, Prefetch
+from django.utils import timezone
 
 # Create your views here.
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -41,23 +42,52 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
 
 class MyTaskListView(LoginRequiredMixin, ListView):
-    model = Task
+    model = Project
     template_name = 'project_management_app/my_task_list.html'
-    context_object_name = 'tasks'
+    context_object_name = 'projects'
 
     def get_queryset(self):
         user = self.request.user
 
         return (
-            Task.objects.filter(
-                Q(project__applicant=user) |
-                Q(assignee=user)
+            Project.objects.filter(
+                Q(applicant=user) |
+                Q(tasks__assignee=user)
             )
-            .select_related('project', "assignee")
+            .prefetch_related(
+                Prefetch(
+                "tasks",
+                queryset=Task.objects.select_related("assignee").order_by("due_date")
+                )
+            )
             .distinct()
-            .order_by("project", "due_date")
         )
 
+
+class TaskCreateView(LoginRequiredMixin, CreateView):
+    model = Task
+    form_class = TaskCreateForm
+    template_name = "project_management_app/task_create.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.project = get_object_or_404(
+            Project,
+            pk=kwargs["project_pk"],
+            applicant=request.user,
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        task = form.save(commit=False)
+        task.project = self.project
+        task.save()
+        return redirect("project_detail", pk=self.project.pk)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["project"] = self.project
+        return context
+    
 
 class TaskUpdateView(LoginRequiredMixin, UpdateView):
     model = Task
@@ -72,8 +102,22 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
         ).select_related('project')
     
     def form_valid(self, form):
+        response = super().form_valid(form)
+
+        project = self.object.project
+
+        # 全タスクが100%かチェック
+        all_done = all(
+            task.progress_rate == 100 for task in project.tasks.all()
+        )
+
+        if all_done and project.status == Project.Status.IN_PROGRESS:
+            project.status = Project.Status.COMPLETED
+            project.completed_at = timezone.now()
+            project.save(update_fields=["status", "completed_at", "updated_at"])
+
         messages.success(self.request, "タスクを更新しました。")
-        return super().form_valid(form)
+        return response
 
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
@@ -88,8 +132,8 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         response = super().form_valid(form)
 
         managers = CustomUser.objects.filter(
-        department=form.instance.department,
-        role=CustomUser.Role.MANAGER,
+            department=form.instance.department,
+            role=CustomUser.Role.MANAGER,
         )
 
         for manager in managers:
@@ -103,6 +147,21 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
+class ProjectStartView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        project = get_object_or_404(
+            Project,
+            pk=pk,
+            applicant=request.user,  # ← 申請者のみ
+            status=Project.Status.APPROVED
+        )
+
+        project.status = Project.Status.IN_PROGRESS
+        project.save(update_fields=["status", "updated_at"])
+
+        return redirect("project_detail", pk=project.pk)
+
+        
 class MyProjectListView(LoginRequiredMixin, ListView):
     model = Project
     template_name = "project_management_app/my_projects.html"
@@ -214,18 +273,16 @@ class DepartmentApprovalView(LoginRequiredMixin, FormView):
 
 
 class HQProjectListView(LoginRequiredMixin, ListView):
-    model = Project
+    model = Department
     template_name = "project_management_app/hq_project_list.html"
-    context_object_name = "projects"
-    paginate_by = 20
+    context_object_name = "departments"
 
     def get_queryset(self):
-        return (
-            Project.objects.select_related(
-                "department",
-                "applicant",
+        return Department.objects.filter(is_headquarters=False).prefetch_related(
+            Prefetch(
+                "projects",
+                queryset=Project.objects.select_related("applicant").order_by("-created_at")
             )
-            .order_by("-created_at")
         )
     
 
@@ -264,13 +321,13 @@ class HQApprovalView(LoginRequiredMixin, FormView):
         approval.save()
 
         if approval.examination == Approval.Examination.APPROVED:
-            self.project.status = Project.Status.IN_PROGRESS
+            self.project.status = Project.Status.APPROVED
             self.project.save(update_fields=["status", "updated_at"])
 
             create_notification(
                 recipient=self.project.applicant,
                 project=self.project,
-                message=f"案件『{self.project.name}』が本部で最終承認され、開発開始となりました。",
+                message=f"案件『{self.project.name}』が本部で最終承認されました。",
             )
 
         else:
@@ -315,11 +372,16 @@ class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
     template_name = "project_management_app/notifications.html"
     context_object_name = "notifications"
-
+    
     def get_queryset(self):
-        return self.request.user.notifications.select_related(
+        qs = self.request.user.notifications.select_related(
             "project"
         ).order_by("-created_at")
+
+        # ここで既読化
+        qs.filter(is_read=False).update(is_read=True)
+
+        return qs
 
 
 class BudgetRecordCreateView(LoginRequiredMixin, CreateView):

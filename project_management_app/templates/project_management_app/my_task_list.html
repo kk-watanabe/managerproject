@@ -1,34 +1,48 @@
 {% extends "project_management_app/base.html" %}
 
-{% block title %}タスク一覧{% endblock %}
-
 {% block content %}
 <h2>タスク一覧</h2>
-<table>
-    <tr>
-        <th>案件</th>
-        <th>タスク</th>
-        <th>担当者</th>
-        <th>進捗</th>
-        <th>期限</th>
-        <th></th>
-    </tr>
-    {% for task in tasks %}
-    <tr>
-        <td>{{ task.project.name }}</td>
-        <td>{{ task.title }}</td>
-        <td>{{ task.assignee }}</td>
-        <td>{{ task.progress_rate }}%</td>
-        <td>{{ task.due_date }}</td>
-        <td>
-            {% if task.assignee == request.user and
-                  task.project.status == task.project.Status.IN_PROGRESS %}
-                <a href="{% url 'task_update' task.pk %}">
-                    更新
-                </a>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+
+<br>
+
+{% for project in projects %}
+    <h3>
+        {{ project.name }}
+            {% if project.is_over_budget %}
+            <span class="warning">⚠ 予算超過</span>
+        {% endif %}
+    </h3>
+
+    <table>
+        <tr>
+            <th>タスク</th>
+            <th>担当者</th>
+            <th>進捗</th>
+            <th>期限</th>
+            <th></th>
+        </tr>
+
+        {% for task in project.tasks.all %}
+        <tr>
+            <td>{{ task.title }}</td>
+            <td>{{ task.assignee }}</td>
+            <td>{{ task.progress_rate }}%</td>
+            <td>
+                {{ task.due_date }}
+                {% if task.is_delayed %}
+                    <span class="warning">⚠ 遅延</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if task.assignee == request.user and task.project.status == task.project.Status.IN_PROGRESS %}
+                    <a href="{% url 'task_update' task.pk %}">更新</a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endfor %}
 {% endblock %}

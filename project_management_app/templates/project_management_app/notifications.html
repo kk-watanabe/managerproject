@@ -3,13 +3,15 @@
 {% block title %}通知一覧{% endblock %}
 
 {% block content %}
-    <h1>通知一覧</h1>
+    <h2>通知一覧</h2>
 
     <ul>
-        {% for notification in notifications %}
+        {% for n in notifications %}
             <li>
-                {{ notification.message }}
-                ({{ notification.created_at }})
+                <p class="{% if not n.is_read %}unread-row{% endif %}">
+                    {{ n.message }}
+                    ({{ n.created_at }})
+                </p>
             </li>
         {% endfor %}
     </ul>

@@ -5,31 +5,41 @@
 {% block content %}
 <h1>全案件一覧</h1>
 
-<table border="1">
-    <tr>
-        <th>案件名</th>
-        <th>部門</th>
-        <th>申請者</th>
-        <th>ステータス</th>
-        <th>進捗</th>
-        <th>予算消費率</th>
-        <th></th>
-    </tr>
+{% for department in departments %}
+    {% if department.projects.all %}
+    <h2>{{ department.name }}</h2>
 
-    {% for project in projects %}
-    <tr>
-        <td>{{ project.name }}</td>
-        <td>{{ project.department.name }}</td>
-        <td>{{ project.applicant.username }}</td>
-        <td>{{ project.get_status_display }}</td>
-        <td>{{ project.progress_rate }}%</td>
-        <td>{{ project.consumption_rate }}%</td>
-        <td>
-            <a href="{% url 'project_detail' project.pk %}">
-                詳細
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+    <table border="1">
+        <tr>
+            <th>案件名</th>
+            <th>申請者</th>
+            <th>ステータス</th>
+            <th>進捗</th>
+            <th>予算消費率</th>
+            <th></th>
+        </tr>
+
+        {% for project in department.projects.all %}
+        <tr>
+            <td>
+                {{ project.name }}
+                {% if project.is_over_budget %}
+                    <span class="warning">⚠ 予算超過</span>
+                {% endif %}
+            </td>
+            <td>{{ project.applicant.username }}</td>
+            <td>{{ project.get_status_display }}</td>
+            <td>{{ project.progress_rate }}%</td>
+            <td>{{ project.consumption_rate }}%</td>
+            <td>
+                <a href="{% url 'project_detail' project.pk %}">
+                    詳細
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+{% endfor %}
+
 {% endblock %}

@@ -2,9 +2,11 @@ from django.urls import path
 from .views import (
     HomeView,
     MyTaskListView,
+    TaskCreateView,
     TaskUpdateView,
     MyProjectListView,
     ProjectCreateView,
+    ProjectStartView,
     ProjectDetailView,
     BudgetRecordCreateView,
     DepartmentProjectListView,
@@ -20,10 +22,12 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
 
     path('tasks/', MyTaskListView.as_view(), name='my_tasks'),
+    path("projects/<int:project_pk>/tasks/create/", TaskCreateView.as_view(), name="task_create"),
     path('tasks/<int:pk>/edit/', TaskUpdateView.as_view(), name='task_update'),
 
     path("projects/", MyProjectListView.as_view(), name="my_projects"),
     path("projects/new/", ProjectCreateView.as_view(), name="project_create"),
+    path("projects/<int:pk>/start/", ProjectStartView.as_view(), name="project_start"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="project_detail"),
 
     path("projects/<int:pk>/budget/add/", BudgetRecordCreateView.as_view(), name="budget_record_add"),

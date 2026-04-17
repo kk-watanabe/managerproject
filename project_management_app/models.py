@@ -7,6 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 class Department(models.Model):
     name = models.CharField("部門", max_length=100, unique=True)
+    is_headquarters = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "部門"
@@ -19,7 +20,7 @@ class Department(models.Model):
 
 class CustomUser(AbstractUser):
     class Role(models.TextChoices):
-        MEMBER = "member", "担当者"
+        MEMBER = "member", "タスク担当者"
         APPLICANT = "applicant", "申請者"
         MANAGER = "manager", "部門管理者"
         HQ = "hq", "本部管理者"
@@ -92,6 +93,8 @@ class Project(models.Model):
     )
 
     submitted_at = models.DateField("申請日", null=True, blank=True)
+    start_date = models.DateField("開始日", null=True, blank=True)
+    due_date = models.DateField("期限", null=True, blank=True)
     approved_at = models.DateField("最終承認日", null=True, blank=True)
     completed_at = models.DateField("完了日", null=True, blank=True)
     created_at = models.DateTimeField("作成日時", auto_now_add=True)
@@ -119,8 +122,19 @@ class Project(models.Model):
         )
 
     @property
+    def has_delayed_tasks(self):
+        return any(task.is_delayed for task in self.tasks.all())
+
+    @property
+    def is_delayed(self):
+        return bool(
+            self.due_date
+            and self.due_date < timezone.now().date()
+            and self.current_status != self.Status.COMPLETED
+        )
+    @property
     def is_over_budget(self):
-        return self.actual_amount > self.estimated_budget
+        return self.total_actual_amount > self.estimated_budget
     
     def update_progress(self):
         avg_progress = self.tasks.aggregate(
