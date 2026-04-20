@@ -1,0 +1,69 @@
+{% extends "project_management_app/base.html" %}
+
+{% block title %}タスク詳細{% endblock %}
+
+{% block content %}
+<h2>タスク詳細</h2>
+
+<table>
+    <tr>
+        <th>案件</th>
+        <td>{{ task.project.name }}</td>
+    </tr>
+    <tr>
+        <th>タスク名</th>
+        <td>{{ task.title }}</td>
+    </tr>
+    <tr>
+        <th>説明</th>
+        <td>{{ task.description }}</td>
+    </tr>
+    <tr>
+        <th>担当者</th>
+        <td>{{ task.assignee }}</td>
+    </tr>
+    <tr>
+        <th>進捗</th>
+        <td style="text-align:center;">
+            <div style="background:#eee; width:150px; display:inline-block;">
+                <div style="
+                    background:#4caf50;
+                    width:{{ task.progress_rate }}%;
+                    text-align:center;
+                    color:white;
+                ">
+                    {{ task.progress_rate }}%
+                </div>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th>期限</th>
+        <td>
+            {{ task.due_date }}
+            {% if task.is_delayed %}
+                <span class="warning">⚠ 遅延</span>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<hr>
+
+<!-- 操作 -->
+<div>
+    {% if request.user == task.assignee or request.user == task.project.applicant %}
+        <a href="{% url 'task_update' task.pk %}">更新</a>
+    {% endif %}
+
+    {% if request.user == task.project.applicant %}
+        <a href="{% url 'task_delete' task.pk %}">削除</a>
+    {% endif %}
+</div>
+{% if request.user.role == "member" %}
+    <a href="{% url 'my_tasks' %}">タスク一覧へ戻る</a>
+{% else %}
+    <a href="{% url 'project_detail' task.project.pk %}">案件へ戻る</a>
+{% endif %}
+
+{% endblock %}

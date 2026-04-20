@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView, DetailView, View
+from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView, DetailView, DeleteView, View
 from django.urls import reverse_lazy
 from .models import Project, Task, CustomUser, Approval, Notification, BudgetRecord, Department
 from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm, TaskCreateForm
@@ -8,6 +8,7 @@ from django.contrib import messages
 from .utils import create_notification
 from django.db.models import Q, Prefetch
 from django.utils import timezone
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -36,6 +37,16 @@ class HomeView(LoginRequiredMixin, TemplateView):
         elif user.role == CustomUser.Role.HQ:
             context["projects"] = Project.objects.all().select_related(
                 "department", "applicant"
+            )
+
+            projects = Project.objects.all()
+
+            context["has_over_budget"] = any(
+                p.total_actual_amount > p.estimated_budget
+                for p in projects
+            )
+            context["over_budget_count"] = sum(
+                1 for p in projects if p.is_over_budget
             )
         
         return context
@@ -89,6 +100,17 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         return context
     
 
+class TaskDetailView(LoginRequiredMixin, DetailView):
+    model = Task
+    template_name = "project_management_app/task_detail.html"
+    context_object_name = "task"
+
+    def get_queryset(self):
+        return Task.objects.select_related(
+            "project", "assignee"
+        )
+    
+
 class TaskUpdateView(LoginRequiredMixin, UpdateView):
     model = Task
     form_class = TaskUpdateForm
@@ -97,8 +119,12 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Task.objects.filter(
-            assignee=self.request.user,
-            project__status=Project.Status.IN_PROGRESS,
+            Q(assignee=self.request.user) |
+            Q(project__applicant=self.request.user),
+            project__status__in=[
+                Project.Status.APPROVED,
+                Project.Status.IN_PROGRESS
+            ]
         ).select_related('project')
     
     def form_valid(self, form):
@@ -119,6 +145,39 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "タスクを更新しました。")
         return response
 
+
+class TaskDeleteView(LoginRequiredMixin, DeleteView):
+    model = Task
+    template_name = "project_management_app/task_confirm_delete.html"
+    context_object_name = "task"
+    
+    def dispatch(self, request, *args, **kwargs):
+        task = self.get_object()
+        project = task.project
+
+        # 申請者のみ削除可能
+        if request.user != project.applicant:
+            raise PermissionDenied
+
+        #if project.status != Project.Status.IN_PROGRESS:
+        #    raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        project = self.object.project  # 先に保持
+
+        response = super().post(request, *args, **kwargs)
+
+        # 削除後に進捗更新
+        project.update_progress()
+
+        return response
+    
+    def get_success_url(self):
+        return reverse_lazy("project_detail", kwargs={"pk": self.object.project.pk})
+    
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
@@ -196,18 +255,30 @@ class DepartmentProjectListView(LoginRequiredMixin, ListView):
 class DepartmentApprovalListView(LoginRequiredMixin, ListView):
     model = Project
     template_name = "project_management_app/department_approval_list.html"
-    context_object_name = "projects"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    def get_queryset(self):
-        return (
-            Project.objects.filter(
-                department=self.request.user.department,
-                status=Project.Status.PENDING_MANAGER,
-            )
-            .select_related("applicant", "department")
-            .order_by("-created_at")
-        )
+        department = self.request.user.department
 
+        # 承認待ち
+        context["pending_projects"] = Project.objects.filter(
+            department=department,
+            status=Project.Status.PENDING_MANAGER
+        ).select_related(
+            "applicant", "department"
+        ).order_by("-created_at")
+
+
+        # 承認履歴
+        context["approval_histories"] = Approval.objects.filter(
+            project__department=department,
+            level=Approval.ApprovalLevel.DEPARTMENT
+        ).select_related(
+            "project", "approver"
+        ).order_by("-examined_at")[:20]  # 最新20件
+
+        return context
 
 class DepartmentApprovalView(LoginRequiredMixin, FormView):
     template_name = "project_management_app/department_approval.html"
@@ -289,16 +360,26 @@ class HQProjectListView(LoginRequiredMixin, ListView):
 class HQApprovalListView(LoginRequiredMixin, ListView):
     model = Project
     template_name = "project_management_app/hq_approval_list.html"
-    context_object_name = "projects"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    def get_queryset(self):
-        return (
-            Project.objects.filter(
-                status=Project.Status.PENDING_HQ
-            )
-            .select_related("department", "applicant")
-            .order_by("-created_at")
-        )
+        # 承認待ち
+        context["pending_projects"] = Project.objects.filter(
+            status=Project.Status.PENDING_HQ
+        ).select_related(
+            "applicant", "department"
+        ).order_by("-created_at")
+
+
+        # 承認履歴
+        context["approval_histories"] = Approval.objects.filter(
+            level=Approval.ApprovalLevel.HQ
+        ).select_related(
+            "project", "approver"
+        ).order_by("-examined_at")[:20]  # 最新20件
+
+        return context
 
 
 class HQApprovalView(LoginRequiredMixin, FormView):
@@ -374,14 +455,15 @@ class NotificationListView(LoginRequiredMixin, ListView):
     context_object_name = "notifications"
     
     def get_queryset(self):
-        qs = self.request.user.notifications.select_related(
+        LIMIT = 15
+
+        self.request.user.notifications.filter(
+            is_read=False
+        ).update(is_read=True)
+
+        return self.request.user.notifications.select_related(
             "project"
-        ).order_by("-created_at")
-
-        # ここで既読化
-        qs.filter(is_read=False).update(is_read=True)
-
-        return qs
+        ).order_by("-created_at")[:LIMIT]
 
 
 class BudgetRecordCreateView(LoginRequiredMixin, CreateView):

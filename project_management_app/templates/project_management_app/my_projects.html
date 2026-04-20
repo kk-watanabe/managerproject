@@ -22,7 +22,18 @@
             {% endif %}
         </td>
         <td>{{ project.get_status_display }}</td>
-        <td>{{ project.progress_rate }}%</td>
+        <td style="text-align:center;">
+            <div style="background:#eee; width:150px; display:inline-block;">
+                <div style="
+                    background:#4caf50;
+                    width:{{ project.progress_rate }}%;
+                    text-align:center;
+                    color:white;
+                ">
+                    {{ project.progress_rate }}%
+                </div>
+            </div>
+        </td>
         <td>{{ project.consumption_rate }}%</td>
         <td>
             <a href="{% url 'budget_record_add' project.pk %}">

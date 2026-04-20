@@ -77,9 +77,9 @@ class Project(models.Model):
     estimated_budget = models.DecimalField(
         "予算額", max_digits=12, decimal_places=0
         )
-    actual_amount = models.DecimalField(
-        "実績額", max_digits=12, decimal_places=0, default=0
-    )
+    #actual_amount = models.DecimalField(
+    #    "実績額", max_digits=12, decimal_places=0, default=0
+    #)
     progress_rate = models.PositiveIntegerField(
         "全体進捗率",
         default=0,

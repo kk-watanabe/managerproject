@@ -6,14 +6,43 @@
 <h1>本部最終承認待ち</h1>
 
 <ul>
-    {% for project in projects %}
+    {% for project in pending_projects %}
         <li>
             {{ project.name }}
-            - {{ project.department.name }}
+            - {{ project.applicant.username }}
             <a href="{% url 'hq_approval' project.pk %}">
-                最終承認
+                承認
             </a>
         </li>
+    {% empty %}
+        現在、承認待ち案件はありません。
     {% endfor %}
 </ul>
+<br><br><br>
+<hr>
+
+<h2>承認履歴</h2>
+<table>
+    <tr>
+        <th>案件</th>
+        <th>結果</th>
+        <th>承認者</th>
+        <th>日時</th>
+    </tr>
+
+    {% for a in approval_histories %}
+    <tr>
+        <td>{{ a.project.name }}</td>
+        <td>
+            {% if a.examination == a.Examination.APPROVED %}
+                承認
+            {% else %}
+                却下
+            {% endif %}
+        </td>
+        <td>{{ a.approver }}</td>
+        <td>{{ a.examined_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

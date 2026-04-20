@@ -12,7 +12,9 @@
             <span class="warning">⚠ 予算超過</span>
         {% endif %}
     </h3>
-
+    {% if request.user == project.applicant and project.status != project.Status.COMPLETED %}
+        <a href="{% url 'task_create' project.pk %}"><strong>+タスク追加</strong></a>
+    {% endif %}
     <table>
         <tr>
             <th>タスク</th>
@@ -20,13 +22,25 @@
             <th>進捗</th>
             <th>期限</th>
             <th></th>
+            <th></th>
         </tr>
 
         {% for task in project.tasks.all %}
         <tr>
             <td>{{ task.title }}</td>
             <td>{{ task.assignee }}</td>
-            <td>{{ task.progress_rate }}%</td>
+            <td style="text-align:center;">
+                <div style="background:#eee; width:150px; display:inline-block;">
+                    <div style="
+                        background:#4caf50;
+                        width:{{ task.progress_rate }}%;
+                        text-align:center;
+                        color:white;
+                    ">
+                        {{ task.progress_rate }}%
+                    </div>
+                </div>
+            </td>
             <td>
                 {{ task.due_date }}
                 {% if task.is_delayed %}
@@ -34,8 +48,13 @@
                 {% endif %}
             </td>
             <td>
-                {% if task.assignee == request.user and task.project.status == task.project.Status.IN_PROGRESS %}
-                    <a href="{% url 'task_update' task.pk %}">更新</a>
+                <a href="{% url 'task_detail' task.pk %}">詳細</a>
+            </td>
+            <td>
+                {% if request.user == task.assignee or request.user == task.project.applicant %}
+                    {% if task.project.status == task.project.Status.IN_PROGRESS %}
+                        <a href="{% url 'task_update' task.pk %}">更新</a>
+                    {% endif %}
                 {% else %}
                     -
                 {% endif %}
