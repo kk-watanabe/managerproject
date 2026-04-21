@@ -1,5 +1,6 @@
 from django import forms
-from .models import Task, Project, Approval, BudgetRecord
+from django.utils import timezone
+from .models import Task, Project, Approval, BudgetRecord, Department
 
 class TaskCreateForm(forms.ModelForm):
     class Meta:
@@ -28,7 +29,6 @@ class ProjectCreateForm(forms.ModelForm):
             "name",
             "description",
             "department",
-            "applicant",
             "start_date",
             "due_date",
             "estimated_budget",
@@ -38,6 +38,34 @@ class ProjectCreateForm(forms.ModelForm):
             "start_date": forms.DateInput(attrs={"type": "date"}),
             "due_date": forms.DateInput(attrs={"type": "date"}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # 本部を除外
+        self.fields["department"].queryset = Department.objects.filter(
+            is_headquarters=False
+        )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+        due_date = cleaned_data.get("due_date")
+        today = timezone.now().date()
+
+        # 開始日が過去
+        if start_date and start_date < today:
+            self.add_error("start_date", "開始日は今日以降の日付を指定してください。")
+
+        # 期限が過去
+        if due_date and due_date < today:
+            self.add_error("due_date", "期限は今日以降の日付を指定してください。")
+
+        # 期限 < 開始日
+        if start_date and due_date and due_date < start_date:
+            self.add_error("due_date", "期限は開始日以降に設定してください。")
+
+        return cleaned_data
 
 
 class ApprovalForm(forms.ModelForm):

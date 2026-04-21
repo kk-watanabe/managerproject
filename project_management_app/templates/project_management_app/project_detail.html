@@ -5,6 +5,15 @@
 {% block content %}
 <h2>{{ project.name }}</h2>
 
+{% if request.user == project.applicant and project.status == project.Status.APPROVED %}
+    <form method="post" action="{% url 'project_start' project.pk %}">
+        {% csrf_token %}
+        <button type="submit">案件を開始</button>
+    </form>
+{% endif %}
+
+<br>
+
 <p>概要: {{ project.description }}</p>
 <p>部門: {{ project.department.name }}</p>
 <p>申請者: {{ project.applicant.username }}</p>
@@ -14,13 +23,6 @@
 <p>消費率: {{ project.consumption_rate }} %</p>
 
 <br>
-
-{% if request.user == project.applicant and project.status == project.Status.APPROVED %}
-    <form method="post" action="{% url 'project_start' project.pk %}">
-        {% csrf_token %}
-        <button type="submit">案件を開始</button>
-    </form>
-{% endif %}
 <hr>
 
 <h3>タスク一覧</h3>

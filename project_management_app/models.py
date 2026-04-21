@@ -130,7 +130,7 @@ class Project(models.Model):
         return bool(
             self.due_date
             and self.due_date < timezone.now().date()
-            and self.current_status != self.Status.COMPLETED
+            and self.status != self.Status.COMPLETED
         )
     @property
     def is_over_budget(self):
@@ -139,10 +139,13 @@ class Project(models.Model):
     def update_progress(self):
         avg_progress = self.tasks.aggregate(
             avg=Avg("progress_rate")
-        )["avg"]
-        self.progress_rate = int(avg_progress or 0)
-        self.save(update_fields=["progress_rate", "updated_at"])
+        )["avg"] or 0
+        new_progress = int(avg_progress)
 
+        if self.progress_rate != new_progress:
+            self.progress_rate = new_progress
+            self.save(update_fields=["progress_rate"])
+    
     def __str__(self):
         return self.name
 
@@ -245,6 +248,13 @@ class Approval(models.Model):
         verbose_name = "承認履歴"
         verbose_name_plural = "承認履歴"
         ordering = ["-examined_at"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "level"],
+                name="unique_approval_per_project_level"
+            )
+        ]
     
     def __str__(self):
         return f"{self.project.name} - {self.get_level_display()}"
@@ -290,6 +300,7 @@ class BudgetRecord(models.Model):
         "実績額",
         max_digits=12,
         decimal_places=0,
+        validators=[MinValueValidator(0)],
     )
     recorded_at = models.DateField(
         "計上日",

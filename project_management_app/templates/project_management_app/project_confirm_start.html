@@ -1,0 +1,13 @@
+{% extends "project_management_app/base.html" %}
+
+{% block title %}案件開始{% endblock %}
+
+{% block content %}
+<h2>案件『{{ project.name }}』開始</h2>
+<p>本当に始めますか？</p>
+
+<form method="post" action="{% url 'project_start' project.pk %}">
+    {% csrf_token %}
+    <button type="submit">案件を開始</button>
+</form>
+{% endblock %}

@@ -53,7 +53,9 @@
 <!-- 操作 -->
 <div>
     {% if request.user == task.assignee or request.user == task.project.applicant %}
-        <a href="{% url 'task_update' task.pk %}">更新</a>
+        {% if task.project.status == task.project.Status.IN_PROGRESS %}
+            <a href="{% url 'task_update' task.pk %}">更新</a>
+        {% endif %}
     {% endif %}
 
     {% if request.user == task.project.applicant %}

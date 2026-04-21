@@ -215,6 +215,9 @@ class ProjectStartView(LoginRequiredMixin, View):
             status=Project.Status.APPROVED
         )
 
+        if project.status != Project.Status.APPROVED:
+            raise PermissionDenied
+
         project.status = Project.Status.IN_PROGRESS
         project.save(update_fields=["status", "updated_at"])
 
@@ -291,6 +294,11 @@ class DepartmentApprovalView(LoginRequiredMixin, FormView):
             department=request.user.department,
             status=Project.Status.PENDING_MANAGER,
         )
+
+        # 部門管理者のみ承認可能
+        if request.user.role != CustomUser.Role.MANAGER:
+            raise PermissionDenied
+        
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -392,6 +400,11 @@ class HQApprovalView(LoginRequiredMixin, FormView):
             pk=kwargs["pk"],
             status=Project.Status.PENDING_HQ,
         )
+
+        # HQのみ承認可能
+        if request.user.role != CustomUser.Role.HQ:
+            raise PermissionDenied
+
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
