@@ -17,8 +17,15 @@
 <p>概要: {{ project.description }}</p>
 <p>部門: {{ project.department.name }}</p>
 <p>申請者: {{ project.applicant.username }}</p>
+<p>開始日： {{ project.start_date }}</p>
+<p>期限： {{ project.due_date }}</p>
 <p>進捗率: {{ project.progress_rate }} %</p>
-<p>予算: {{ project.estimated_budget|intcomma }} 円</p>
+<p>
+    予算: {{ project.estimated_budget|intcomma }} 円
+    <a href="{% url 'budget_plan_detail' project.pk %}">
+        （詳細）
+    </a>
+</p>
 <p>実績合計: {{ project.total_actual_amount|intcomma }} 円</p>
 <p>消費率: {{ project.consumption_rate }} %</p>
 
@@ -125,6 +132,27 @@
     {% endfor %}
 </table>
 
+<hr>
+<h3>▼コメント</h3>
+
+<ul>
+    {% for c in project.comments.all %}
+        <li>
+            <strong>{{ c.author.username }}</strong>
+            ({{ c.created_at|date:"Y-m-d H:i" }})<br>
+            {{ c.content|linebreaks }}
+        </li>
+    {% empty %}
+        <li>コメントはまだありません</li>
+    {% endfor %}
+</ul>
+<h4>コメント投稿:</h4>
+
+<form method="post" action="{% url 'project_comment_add' project.pk %}">
+    {% csrf_token %}
+    <textarea name="content" rows="5" cols="50"></textarea><br>
+    <button type="submit">投稿</button>
+</form>
 <br><br>
 
 {% endblock %}

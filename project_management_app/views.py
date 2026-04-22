@@ -3,12 +3,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView, DetailView, DeleteView, View
 from django.urls import reverse_lazy
 from .models import Project, Task, CustomUser, Approval, Notification, BudgetRecord, Department
-from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm, TaskCreateForm
+from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm, TaskCreateForm, CommentForm, BudgetPlanFormSet
 from django.contrib import messages
 from .utils import create_notification
 from django.db.models import Q, Prefetch
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 
 # Create your views here.
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -185,25 +186,64 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     template_name = "project_management_app/project_create.html"
     success_url = reverse_lazy("my_projects")
 
-    def form_valid(self, form):
-        form.instance.applicant = self.request.user
-        form.instance.status = Project.Status.PENDING_MANAGER
-        response = super().form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
+        if self.request.method == "POST":
+            context["formset"] = BudgetPlanFormSet(
+                self.request.POST,
+                prefix="form"
+            )
+        else:
+            context["formset"] = BudgetPlanFormSet(
+                prefix="form"
+            )
+
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["formset"]
+
+        form.instance.applicant = self.request.user
+        form.instance.department = self.request.user.department
+        form.instance.status = Project.Status.PENDING_MANAGER
+
+    
+        if not formset.is_valid():
+            return self.form_invalid(form)
+        
+        total = sum(
+            f.cleaned_data.get("planned_amount") or 0
+            for f in formset
+            if not f.cleaned_data.get("DELETE", False)
+        )
+
+        if total > form.instance.estimated_budget:
+            form.add_error(None, "内訳合計が予算を超えています")
+            return self.form_invalid(form)
+        
+        with transaction.atomic():
+            self.object = form.save()
+
+            formset.instance = self.object
+            formset.save()
+
+        # 通知
         managers = CustomUser.objects.filter(
-            department=form.instance.department,
+            department=self.object.department,
             role=CustomUser.Role.MANAGER,
         )
 
         for manager in managers:
             create_notification(
                 recipient=manager,
-                project=form.instance,
-                message=f"新規案件『{form.instance.name}』の承認依頼があります。",
+                project=self.object,
+                message=f"新規案件『{self.object.name}』の承認依頼があります。",
             )
-        
+
         messages.success(self.request, "案件を申請しました。")
-        return response
+        return redirect(self.success_url)
 
 
 class ProjectStartView(LoginRequiredMixin, View):
@@ -470,15 +510,28 @@ class NotificationListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         LIMIT = 15
 
-        self.request.user.notifications.filter(
-            is_read=False
-        ).update(is_read=True)
-
-        return self.request.user.notifications.select_related(
+        queryset = self.request.user.notifications.select_related(
             "project"
         ).order_by("-created_at")[:LIMIT]
 
+        # 表示対象だけ既読化
+        self.request.user.notifications.filter(
+            id__in=[n.id for n in queryset],
+            is_read=False
+        ).update(is_read=True)
 
+        return queryset
+
+
+class BudgetPlanDetailView(LoginRequiredMixin, DetailView):
+    model = Project
+    template_name = "project_management_app/budget_plan_detail.html"
+    context_object_name = "project"
+
+    def get_queryset(self):
+        return Project.objects.prefetch_related("budget_plans")
+    
+    
 class BudgetRecordCreateView(LoginRequiredMixin, CreateView):
     model = BudgetRecord
     form_class = BudgetRecordForm
@@ -494,8 +547,88 @@ class BudgetRecordCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.project = self.project
+        
+        response = super().form_valid(form)
+
+        project = self.project
+
+        # ★ 予算超過チェック
+        if project.is_over_budget and not project.is_budget_notified:
+            
+            managers = CustomUser.objects.filter(
+                department=project.department,
+                role=CustomUser.Role.MANAGER
+            )
+
+            hq_users = CustomUser.objects.filter(
+                role=CustomUser.Role.HQ
+            )
+
+            # 部門管理者
+            for m in managers:
+                create_notification(
+                    recipient=m,
+                    project=project,
+                    message=f"案件『{project.name}』が予算超過しています。対応を確認してください。"
+                )
+
+            # 本部
+            for hq in hq_users:
+                create_notification(
+                    recipient=hq,
+                    project=project,
+                    message=f"案件『{project.name}』が予算超過しています。"
+                )
+
+            project.is_budget_notified = True
+            project.save(update_fields=["is_budget_notified"])
+        
         messages.success(self.request, "予算実績を登録しました。")
-        return super().form_valid(form)
+        return response
 
     def get_success_url(self):
         return reverse_lazy("my_projects")
+    
+
+class ProjectCommentCreateView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        project = get_object_or_404(Project, pk=pk)
+
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.project_id = project.id
+            comment.author_id = request.user.id
+            comment.save()
+
+            if project.applicant:
+                create_notification(
+                    recipient=project.applicant,
+                    project=project,
+                    message=f"{request.user.username}がコメントしました"
+                )
+
+        return redirect("project_detail", pk=pk)
+
+
+class TaskCommentCreateView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.task_id = task.id
+            comment.author_id = request.user.id
+            comment.save()
+
+            if task.project.applicant:
+                create_notification(
+                    recipient=task.project.applicant,
+                    project=task.project,
+                    message=f"{request.user.username}がコメントしました"
+                )
+
+        return redirect("task_detail", pk=pk)
+
+

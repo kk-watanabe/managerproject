@@ -1,6 +1,7 @@
 from django import forms
 from django.utils import timezone
-from .models import Task, Project, Approval, BudgetRecord, Department
+from .models import Task, Project, Approval, BudgetPlan, BudgetRecord, Comment
+from django.forms import inlineformset_factory
 
 class TaskCreateForm(forms.ModelForm):
     class Meta:
@@ -28,7 +29,6 @@ class ProjectCreateForm(forms.ModelForm):
         fields = [
             "name",
             "description",
-            "department",
             "start_date",
             "due_date",
             "estimated_budget",
@@ -38,14 +38,6 @@ class ProjectCreateForm(forms.ModelForm):
             "start_date": forms.DateInput(attrs={"type": "date"}),
             "due_date": forms.DateInput(attrs={"type": "date"}),
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # 本部を除外
-        self.fields["department"].queryset = Department.objects.filter(
-            is_headquarters=False
-        )
     
     def clean(self):
         cleaned_data = super().clean()
@@ -68,6 +60,15 @@ class ProjectCreateForm(forms.ModelForm):
         return cleaned_data
 
 
+BudgetPlanFormSet = inlineformset_factory(
+    Project,
+    BudgetPlan,
+    fields=("category", "planned_amount"),
+    extra=3,
+    can_delete=True
+)
+
+
 class ApprovalForm(forms.ModelForm):
     class Meta:
         model = Approval
@@ -80,4 +81,21 @@ class ApprovalForm(forms.ModelForm):
 class BudgetRecordForm(forms.ModelForm):
     class Meta:
         model = BudgetRecord
-        fields = ["item_name", "amount", "recorded_at", "note"]
+        fields = ["category", "item_name", "amount", "recorded_at", "note"]
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["content"]
+        widgets = {
+            "content": forms.Textarea(attrs={"rows": 5, "placeholder": "コメントを入力..."})
+        }
+    
+    def clean_content(self):
+        content = self.cleaned_data.get("content")
+
+        if not content or not content.strip():
+            raise forms.ValidationError("コメントは必須です。")
+
+        return content

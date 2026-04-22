@@ -10,6 +10,7 @@ from .views import (
     ProjectCreateView,
     ProjectStartView,
     ProjectDetailView,
+    BudgetPlanDetailView,
     BudgetRecordCreateView,
     DepartmentProjectListView,
     DepartmentApprovalListView,
@@ -18,6 +19,8 @@ from .views import (
     HQApprovalListView,
     HQApprovalView,
     NotificationListView,
+    ProjectCommentCreateView,
+    TaskCommentCreateView,
 )
 
 urlpatterns = [
@@ -34,6 +37,7 @@ urlpatterns = [
     path("projects/<int:pk>/start/", ProjectStartView.as_view(), name="project_start"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="project_detail"),
 
+    path("projects/<int:pk>/budget/", BudgetPlanDetailView.as_view(), name="budget_plan_detail"),
     path("projects/<int:pk>/budget/add/", BudgetRecordCreateView.as_view(), name="budget_record_add"),
 
     path("department/projects/", DepartmentProjectListView.as_view(), name="department_project_list"),
@@ -45,4 +49,7 @@ urlpatterns = [
     path("hq/approvals/<int:pk>/", HQApprovalView.as_view(), name="hq_approval"),
 
     path("notifications/", NotificationListView.as_view(), name="notifications"),
+
+    path("projects/<int:pk>/comments/add/", ProjectCommentCreateView.as_view(), name="project_comment_add"),
+    path("tasks/<int:pk>/comments/add/", TaskCommentCreateView.as_view(), name="task_comment_add"),
 ]

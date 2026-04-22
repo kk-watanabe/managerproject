@@ -1,0 +1,28 @@
+{% extends "project_management_app/base.html" %}
+
+{% block title %}予算内訳{% endblock %}
+
+{% block content %}
+<h2>予算内訳（{{ project.name }}）</h2>
+
+<table>
+    <tr>
+        <th>項目</th>
+        <th>予定額</th>
+    </tr>
+
+    {% for p in project.budget_plans.all %}
+    <tr>
+        <td>{{ p.category }}</td>
+        <td>{{ p.planned_amount }} 円</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2">内訳は登録されていません</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a href="{% url 'project_detail' project.pk %}">戻る</a>
+{% endblock %}

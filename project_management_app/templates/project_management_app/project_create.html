@@ -7,11 +7,63 @@
 
     <form method="post">
         {% csrf_token %}
+
         {{ form.as_p }}
+
+        予算内訳（任意）
+        {{ formset.management_form }}
+
+        <div id="formset-area">
+            {% for f in formset %}
+                <div class="form-row">
+                    {{ f.category }}
+                    {{ f.planned_amount }} 円
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" id="add-form">＋追加</button>
+
+        <br><br>
         <button type="submit">申請する</button>
     </form>
+
+    <div id="empty-form" style="display:none;">
+        <div class="form-row">
+            {{ formset.empty_form.category }}
+            {{ formset.empty_form.planned_amount }} 円
+        </div>
+    </div>
 
     <br>
 
     <a href="{% url 'my_projects' %}">自案件一覧へ</a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const btn = document.getElementById("add-form");
+
+    if (!btn) {
+        return;
+    }
+
+    btn.addEventListener("click", function() {
+
+        const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+        const currentCount = parseInt(totalForms.value);
+
+        const emptyFormHtml = document.getElementById("empty-form").innerHTML;
+
+        const newForm = emptyFormHtml.replace(/__prefix__/g, currentCount);
+
+        document.getElementById("formset-area")
+            .insertAdjacentHTML("beforeend", newForm);
+
+        totalForms.value = currentCount + 1;
+    });
+});
+</script>
 {% endblock %}

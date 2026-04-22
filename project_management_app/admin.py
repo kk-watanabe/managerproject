@@ -124,3 +124,13 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ("is_read",)
     search_fields = ("recipient__username", "message")
     ordering = ("-created_at",)
+
+
+from django.contrib import admin
+from .models import Comment
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("id", "author", "project", "task", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("content", "author__username")

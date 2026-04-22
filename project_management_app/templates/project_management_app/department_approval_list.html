@@ -8,8 +8,10 @@
 <ul>
     {% for project in pending_projects %}
         <li>
-            {{ project.name }}
-            - {{ project.applicant.username }}
+            <a href="{% url 'project_detail' project.pk %}">
+                『{{ project.name }}』
+            </a>
+            - {{ project.department }} - {{ project.applicant.username }}
             <a href="{% url 'department_approval' project.pk %}">
                 承認
             </a>

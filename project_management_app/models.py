@@ -77,6 +77,7 @@ class Project(models.Model):
     estimated_budget = models.DecimalField(
         "予算額", max_digits=12, decimal_places=0
         )
+    is_budget_notified = models.BooleanField(default=False)
     #actual_amount = models.DecimalField(
     #    "実績額", max_digits=12, decimal_places=0, default=0
     #)
@@ -288,12 +289,35 @@ class Notification(models.Model):
         return f"{self.recipient.username}: {self.message[:20]}"
     
 
+class BudgetPlan(models.Model):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="budget_plans",
+        verbose_name="案件"
+    )
+    category = models.CharField("費目", max_length=100)
+    planned_amount = models.DecimalField("予定額", max_digits=12, decimal_places=0)
+
+    class Meta:
+        verbose_name = "予算内訳"
+        verbose_name_plural = "予算内訳"
+
+    def __str__(self):
+        return f"{self.project.name} - {self.category}"
+    
+
 class BudgetRecord(models.Model):
     project = models.ForeignKey(
         Project,
         verbose_name="案件",
         on_delete=models.CASCADE,
         related_name="budget_records",
+    )
+    category = models.CharField(
+        "カテゴリ",
+        max_length=100,
+        null=True,
     )
     item_name = models.CharField("項目名", max_length=100)
     amount = models.DecimalField(
@@ -315,3 +339,35 @@ class BudgetRecord(models.Model):
     
     def __str__(self):
         return f"{self.project.name} - {self.item_name}"
+
+
+class Comment(models.Model):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        null=True,
+        blank=True,
+        verbose_name="案件"
+    )
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        null=True,
+        blank=True,
+        verbose_name="タスク"
+    )
+    author = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name="投稿者"
+    )
+    content = models.TextField("コメント")
+    created_at = models.DateTimeField("作成日時", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "コメント"
+        verbose_name_plural = "コメント"
+        ordering = ["created_at"]
