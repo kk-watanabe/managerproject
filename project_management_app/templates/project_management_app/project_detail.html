@@ -94,20 +94,61 @@
 <hr>
 
 <h3>予算実績</h3>
-{% if request.user == project.applicant and project.status != project.Status.COMPLETED %}
-    <a href="{% url 'budget_record_add' project.pk %}"><strong>+実績入力</strong></a>
+{% if request.user == project.applicant and project.status == project.Status.IN_PROGRESS %}
+    <a href="{% url 'budget_record_add' project.pk %}"><strong>+実績を追加</strong></a>
 {% endif %}
 <table>
     <tr>
-        <th>項目</th>
-        <th>金額</th>
-        <th>計上日</th>
+        <th>費目</th>
+        <th>予算</th>
+        <th>実績</th>
+        <th>差額</th>
+        <th>消費率</th>
     </tr>
-    {% for record in project.budget_records.all %}
+
+    {% for b in budget_summary %}
     <tr>
-        <td>{{ record.item_name }}</td>
-        <td>{{ record.amount|intcomma }} 円</td>
-        <td>{{ record.recorded_at }}</td>
+        <td>{{ b.category }}</td>
+        <td>{{ b.planned_amount|default:0|intcomma }}</td>
+        <td>{{ b.actual|default:0|intcomma }}</td>
+        <td>
+            {% if b.diff > 0 %}
+                <span style="color:red;">+{{ b.diff|intcomma }}</span>
+            {% else %}
+                {{ b.diff|intcomma }}
+            {% endif %}
+        </td>
+        <td>{{ b.rate }}%</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td><strong>合計</strong></td>
+        <td>{{ project.estimated_budget|intcomma }}</td>
+        <td>{{ project.total_actual_amount|intcomma }}</td>
+        <td>{{ total_diff }}</td>
+        <td>{{ project.consumption_rate }}%</td>
+    </tr>
+</table>
+
+<hr>
+<h3>実績明細</h3>
+{% if request.user == project.applicant and project.status == project.Status.IN_PROGRESS %}
+    <a href="{% url 'budget_record_add' project.pk %}"><strong>+実績を追加</strong></a>
+{% endif %}
+<table>
+    <tr>
+        <th>費目</th>
+        <th>明細</th>
+        <th>金額</th>
+        <th>日付</th>
+    </tr>
+
+    {% for r in budget_records %}
+    <tr>
+        <td>{{ r.budget_plan.category }}</td>
+        <td>{{ r.item_name }}</td>
+        <td>{{ r.amount|intcomma }}</td>
+        <td>{{ r.recorded_at }}</td>
     </tr>
     {% endfor %}
 </table>

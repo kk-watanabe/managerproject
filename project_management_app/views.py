@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView, UpdateView, CreateView, FormView, DetailView, DeleteView, View
 from django.urls import reverse_lazy
-from .models import Project, Task, CustomUser, Approval, Notification, BudgetRecord, Department
+from .models import Project, Task, CustomUser, Approval, Notification, BudgetPlan, BudgetRecord, Department
 from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm, TaskCreateForm, CommentForm, BudgetPlanFormSet
 from django.contrib import messages
 from .utils import create_notification
@@ -209,19 +209,19 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         form.instance.department = self.request.user.department
         form.instance.status = Project.Status.PENDING_MANAGER
 
-    
         if not formset.is_valid():
             return self.form_invalid(form)
-        
+
         total = sum(
             f.cleaned_data.get("planned_amount") or 0
-            for f in formset
-            if not f.cleaned_data.get("DELETE", False)
+            for f in formset.forms
+            if f.cleaned_data and not f.cleaned_data.get("DELETE", False)
         )
 
-        if total > form.instance.estimated_budget:
-            form.add_error(None, "内訳合計が予算を超えています")
+        if total != form.instance.estimated_budget:
+            form.add_error(None, "内訳合計が予算と一致しません")
             return self.form_invalid(form)
+        
         
         with transaction.atomic():
             self.object = form.save()
@@ -483,6 +483,8 @@ class HQApprovalView(LoginRequiredMixin, FormView):
         return context
 
 
+from django.db.models import Sum, Prefetch
+
 class ProjectDetailView(LoginRequiredMixin, DetailView):
     model = Project
     template_name = "project_management_app/project_detail.html"
@@ -496,10 +498,39 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             )
             .prefetch_related(
                 "tasks",
-                "budget_records",
                 "approvals",
+                Prefetch(
+                    "budget_plans",
+                    queryset=BudgetPlan.objects.prefetch_related("records")
+                )
             )
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        project = self.object
+
+        # ■ サマリー
+        plans = project.budget_plans.annotate(
+            actual=Sum("records__amount")
+        )
+
+        for p in plans:
+            actual = p.actual or 0
+            planned = p.planned_amount or 0
+
+            p.diff = actual - planned
+            p.rate = round(actual / planned * 100, 1) if planned > 0 else 0
+
+        context["budget_summary"] = plans
+        context["total_diff"] = project.total_actual_amount - project.estimated_budget
+
+        # ■ 明細（全件）
+        context["budget_records"] = project.budget_records.select_related(
+            "budget_plan"
+        ).order_by("-recorded_at")
+
+        return context
     
 
 class NotificationListView(LoginRequiredMixin, ListView):
@@ -545,16 +576,28 @@ class BudgetRecordCreateView(LoginRequiredMixin, CreateView):
         )
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["project"] = self.project
+        return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["project"] = self.project
+        return context
+
     def form_valid(self, form):
-        form.instance.project = self.project
-        
-        response = super().form_valid(form)
+        obj = form.save(commit=False)
+        obj.project = self.project
+        obj.save()
+
+        self.object = obj
 
         project = self.project
 
         # ★ 予算超過チェック
         if project.is_over_budget and not project.is_budget_notified:
-            
+
             managers = CustomUser.objects.filter(
                 department=project.department,
                 role=CustomUser.Role.MANAGER
@@ -564,7 +607,6 @@ class BudgetRecordCreateView(LoginRequiredMixin, CreateView):
                 role=CustomUser.Role.HQ
             )
 
-            # 部門管理者
             for m in managers:
                 create_notification(
                     recipient=m,
@@ -572,7 +614,6 @@ class BudgetRecordCreateView(LoginRequiredMixin, CreateView):
                     message=f"案件『{project.name}』が予算超過しています。対応を確認してください。"
                 )
 
-            # 本部
             for hq in hq_users:
                 create_notification(
                     recipient=hq,
@@ -582,13 +623,14 @@ class BudgetRecordCreateView(LoginRequiredMixin, CreateView):
 
             project.is_budget_notified = True
             project.save(update_fields=["is_budget_notified"])
-        
-        messages.success(self.request, "予算実績を登録しました。")
-        return response
 
-    def get_success_url(self):
-        return reverse_lazy("my_projects")
+        messages.success(self.request, "実績を登録しました。")
+
+        return redirect(self.get_success_url())
     
+    def get_success_url(self):
+        return reverse_lazy("project_detail", kwargs={"pk": self.project.pk})
+
 
 class ProjectCommentCreateView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -601,9 +643,25 @@ class ProjectCommentCreateView(LoginRequiredMixin, View):
             comment.author_id = request.user.id
             comment.save()
 
+            # ★ 通知対象ユーザー収集
+            recipients = set()
+
+            # 申請者
             if project.applicant:
+                recipients.add(project.applicant)
+
+            # タスク担当者
+            task_users = project.tasks.values_list("assignee", flat=True)
+            users = CustomUser.objects.filter(id__in=task_users)
+            recipients.update(users)
+
+            # ★ 自分は除外
+            recipients.discard(request.user)
+
+            # ★ 通知送信
+            for user in recipients:
                 create_notification(
-                    recipient=project.applicant,
+                    recipient=user,
                     project=project,
                     message=f"{request.user.username}がコメントしました"
                 )
@@ -622,9 +680,28 @@ class TaskCommentCreateView(LoginRequiredMixin, View):
             comment.author_id = request.user.id
             comment.save()
 
+            recipients = set()
+
+            # 案件申請者
             if task.project.applicant:
+                recipients.add(task.project.applicant)
+
+            # タスク担当者
+            if task.assignee:
+                recipients.add(task.assignee)
+
+            # 同一案件の他タスク担当者
+            users = CustomUser.objects.filter(
+                assigned_tasks__project=task.project
+            ).distinct()
+
+            recipients.update(users)
+
+            recipients.discard(request.user)
+
+            for user in recipients:
                 create_notification(
-                    recipient=task.project.applicant,
+                    recipient=user,
                     project=task.project,
                     message=f"{request.user.username}がコメントしました"
                 )

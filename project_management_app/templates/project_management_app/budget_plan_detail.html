@@ -1,5 +1,5 @@
 {% extends "project_management_app/base.html" %}
-
+{% load humanize %}
 {% block title %}予算内訳{% endblock %}
 
 {% block content %}
@@ -14,7 +14,7 @@
     {% for p in project.budget_plans.all %}
     <tr>
         <td>{{ p.category }}</td>
-        <td>{{ p.planned_amount }} 円</td>
+        <td>{{ p.planned_amount|intcomma }} 円</td>
     </tr>
     {% empty %}
     <tr>

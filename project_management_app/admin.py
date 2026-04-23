@@ -7,6 +7,7 @@ from .models import(
     Task,
     Approval,
     Notification,
+    BudgetPlan,
     BudgetRecord,
 )
 
@@ -39,7 +40,7 @@ class CustomUserAdmin(UserAdmin):
 
 class TaskInline(admin.TabularInline):
     model = Task
-    extra = 1
+    #extra = 1
     fields = (
         "title",
         "assignee",
@@ -49,9 +50,14 @@ class TaskInline(admin.TabularInline):
     )
 
 
+class BudgetPlanInline(admin.TabularInline):
+    model = BudgetPlan
+    #extra = 1
+
+
 class BudgetRecordInline(admin.TabularInline):
     model = BudgetRecord
-    extra = 1
+    #extra = 1
 
 
 @admin.register(Project)
@@ -69,7 +75,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = ("status", "department")
     search_fields = ("name", "description")
     ordering = ("-created_at",)
-    inlines = [TaskInline, BudgetRecordInline]
+    inlines = [TaskInline, BudgetPlanInline, BudgetRecordInline]
 
 
 @admin.register(Task)
@@ -87,15 +93,28 @@ class TaskAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
     ordering = ("due_date",)
 
+
+@admin.register(BudgetPlan)
+class BudgetPlanAdmin(admin.ModelAdmin):
+    list_display = (
+        "project",
+        "category",
+        "planned_amount",
+    )
+    list_filter = ("category", "project")
+    search_fields = ("category", "project__name")
+
+
 @admin.register(BudgetRecord)
 class BudgetRecordAdmin(admin.ModelAdmin):
     list_display = (
         "project",
+        "budget_plan",
         "item_name",
         "amount",
         "recorded_at",
     )
-    list_filter = ("recorded_at", "project")
+    list_filter = ("recorded_at", "budget_plan", "project")
     search_fields = ("item_name", "project__name")
 
 

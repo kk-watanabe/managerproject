@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg, Sum
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+
 
 # Create your models here.
 class Department(models.Model):
@@ -314,12 +316,15 @@ class BudgetRecord(models.Model):
         on_delete=models.CASCADE,
         related_name="budget_records",
     )
-    category = models.CharField(
-        "カテゴリ",
-        max_length=100,
+    budget_plan = models.ForeignKey(
+        BudgetPlan,
+        on_delete=models.PROTECT,
+        related_name="records",
+        verbose_name="費目",
         null=True,
+        blank=True,
     )
-    item_name = models.CharField("項目名", max_length=100)
+    item_name = models.CharField("明細", max_length=100)
     amount = models.DecimalField(
         "実績額",
         max_digits=12,
@@ -336,6 +341,16 @@ class BudgetRecord(models.Model):
         verbose_name = "予算実績"
         verbose_name_plural = "予算実績"
         ordering = ["-recorded_at", "-id"]
+    
+    def clean(self):
+        super().clean()
+
+        if not self.project_id:
+            return
+
+        if self.budget_plan_id:
+            if self.budget_plan.project_id != self.project_id:
+                raise ValidationError("不正な費目です（案件が一致しません）")
     
     def __str__(self):
         return f"{self.project.name} - {self.item_name}"

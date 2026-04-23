@@ -7,7 +7,7 @@
 
 {% for project in projects %}
     <h3>
-        {{ project.name }}
+        {{ project.name }} <a href="{% url 'project_detail' project.pk %}"> 詳細</a>
             {% if project.is_over_budget %}
             <span class="warning">⚠ 予算超過</span>
         {% endif %}

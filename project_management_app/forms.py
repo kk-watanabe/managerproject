@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 from .models import Task, Project, Approval, BudgetPlan, BudgetRecord, Comment
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, BaseInlineFormSet
 
 class TaskCreateForm(forms.ModelForm):
     class Meta:
@@ -60,12 +60,50 @@ class ProjectCreateForm(forms.ModelForm):
         return cleaned_data
 
 
+class BudgetPlanBaseFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        total = 0
+        valid_count = 0  # ★ 追加
+
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+
+            if form.cleaned_data.get("DELETE", False):
+                continue
+
+            category = form.cleaned_data.get("category")
+            amount = form.cleaned_data.get("planned_amount")
+
+            # 空行
+            if not category and amount is None:
+                continue
+
+            # 片方だけ入力チェック
+            if category and amount is None:
+                raise forms.ValidationError("費目に金額を入力してください")
+
+            if amount and not category:
+                raise forms.ValidationError("金額に対応する費目名を入力してください")
+
+            # ★ 有効行としてカウント
+            valid_count += 1
+            total += amount or 0
+
+        # ★ 1件以上必須
+        if valid_count == 0:
+            raise forms.ValidationError("少なくとも1件の予算内訳を入力してください")
+
+
 BudgetPlanFormSet = inlineformset_factory(
     Project,
     BudgetPlan,
     fields=("category", "planned_amount"),
     extra=3,
-    can_delete=True
+    can_delete=True,
+    formset=BudgetPlanBaseFormSet
 )
 
 
@@ -81,7 +119,33 @@ class ApprovalForm(forms.ModelForm):
 class BudgetRecordForm(forms.ModelForm):
     class Meta:
         model = BudgetRecord
-        fields = ["category", "item_name", "amount", "recorded_at", "note"]
+        fields = ["budget_plan", "item_name", "amount", "recorded_at", "note"]
+        widgets = {
+            "recorded_at": forms.DateInput(attrs={"type": "date"}),
+            "note": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop("project", None)
+        super().__init__(*args, **kwargs)
+
+        if self.project:
+            self.fields["budget_plan"].queryset = (
+                self.project.budget_plans.order_by("id")
+            )
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+
+        if not self.project:
+            raise ValueError("projectが設定されていません")
+
+        obj.project = self.project
+
+        if commit:
+            obj.save()
+
+        return obj
 
 
 class CommentForm(forms.ModelForm):

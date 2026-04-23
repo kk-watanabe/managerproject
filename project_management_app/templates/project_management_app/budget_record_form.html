@@ -1,17 +1,43 @@
 {% extends "project_management_app/base.html" %}
-{% load humanize %}
-{% block title %}予算実績入力{% endblock %}
+
+{% block title %}実績入力（{{ project.name }}）{% endblock %}
 
 {% block content %}
-<h2>予算実績入力</h2>
+<h2>実績入力</h2>
 
-<p>案件名: {{ view.project.name }}</p>
-<p>案件予算: {{ view.project.estimated_budget|intcomma }} 円</p>
-<p>現在消費率: {{ view.project.consumption_rate }} %</p>
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <p>
+        <label>費目</label><br>
+        {{ form.budget_plan }}
+    </p>
+
+    <p>
+        <label>明細</label><br>
+        {{ form.item_name }}
+    </p>
+
+    <p>
+        <label>金額</label><br>
+        {{ form.amount }} 円
+    </p>
+
+    <p>
+        <label>計上日</label><br>
+        {{ form.recorded_at }}
+    </p>
+
+    <p>
+        <label>備考</label><br>
+        {{ form.note }}
+    </p>
+
     <button type="submit">登録</button>
 </form>
+
+<br>
+<a href="{% url 'project_detail' project.pk %}">戻る</a>
+
 {% endblock %}
