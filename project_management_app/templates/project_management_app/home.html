@@ -9,26 +9,35 @@
     <h3>申請者メニュー</h3>
     <a href="{% url 'project_create' %}">新規案件申請</a><br>
     <a href="{% url 'my_projects' %}">自案件一覧</a>
+    {% if has_delayed_projects %}
+        <span class="warning">⚠ 遅延あり</span>
+    {% endif %}
 {% endif %}
 
 {% if request.user.role == "member" or request.user.role == "applicant" %}
     <h3>担当者メニュー</h3>
     <a href="{% url 'my_tasks' %}">
         タスク一覧
-        {% if project.has_delayed_tasks %}
-            <span class="warning">⚠ 遅延あり</span>
-        {% endif %}
     </a>
+    {% if has_delayed_tasks %}
+        <span class="warning">⚠ 遅延あり</span>
+    {% endif %}
 {% endif %}
 
 {% if request.user.role == "manager" %}
     <h3>部門管理メニュー</h3>
-    <a href="{% url 'department_project_list' %}">自部門案件一覧</a><br>
+    <a href="{% url 'department_project_list' %}">自部門案件一覧</a>
+    {% if has_delayed_projects %}
+        <span class="warning">⚠ 遅延あり</span>
+    {% endif %}<br>
     <a href="{% url 'department_approval_list' %}" class="approval-link {% if pending_approval_count > 0 %}unread{% endif %}">
         一次承認待ち一覧
         {% if pending_approval_count > 0 %}
             <span class="badge">{{ pending_approval_count }}</span>
         {% endif %}
+    </a><br>
+    <a href="{% url 'department_over_budget_projects' %}">
+        予算超過案件一覧
     </a>
 {% endif %}
 
@@ -37,18 +46,19 @@
     <a href="{% url 'hq_project_list' %}">
         全案件一覧
     </a>
-    {% if has_over_budget %}
-            <span class="warning">⚠ 予算超過あり</span>
-        {% endif %}
-        {% if over_budget_count > 0 %}
-            <span class="warning">({{ over_budget_count }}件)</span>
-        {% endif %}
+    {% if has_delayed_projects %}
+        <span class="warning">⚠ 遅延あり</span>
+    {% endif %}
     <br>
     <a href="{% url 'hq_approval_list' %}" class="approval-link {% if pending_approval_count > 0 %}unread{% endif %}">
         最終承認待ち一覧
         {% if pending_approval_count > 0 %}
             <span class="badge">{{ pending_approval_count }}</span>
         {% endif %}
+    </a>
+    <br>
+    <a href="{% url 'hq_over_budget_projects' %}">
+        予算超過案件一覧
     </a>
 {% endif %}
 {% endblock %}

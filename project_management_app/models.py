@@ -139,6 +139,10 @@ class Project(models.Model):
     def is_over_budget(self):
         return self.total_actual_amount > self.estimated_budget
     
+    @property
+    def total_diff(self):
+        return self.estimated_budget - self.total_actual_amount
+
     def update_progress(self):
         avg_progress = self.tasks.aggregate(
             avg=Avg("progress_rate")

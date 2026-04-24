@@ -44,11 +44,14 @@
         <th>期限</th>
         <th></th>
         <th></th>
-        <th></th>
     </tr>
     {% for task in project.tasks.all %}
     <tr>
-        <td>{{ task.title }}</td>
+        <td>
+            <a href="{% url 'task_detail' task.pk %}">
+                {{ task.title }}
+            </a>
+        </td>
         <td>{{ task.assignee }}</td>
         <td style="text-align:center;">
             <div style="background:#eee; width:150px; display:inline-block;">
@@ -65,11 +68,8 @@
         <td>
             {{ task.due_date }}
             {% if task.is_delayed %}
-                <span class="warning">⚠ 遅延</span>
+                <span class="warning"><strong>⚠ 遅延</strong></span>
             {% endif %}
-        </td>
-        <td>
-            <a href="{% url 'task_detail' task.pk %}">詳細</a>
         </td>
         <td>
             {% if request.user == task.assignee or request.user == task.project.applicant %}
@@ -112,8 +112,8 @@
         <td>{{ b.planned_amount|default:0|intcomma }}</td>
         <td>{{ b.actual|default:0|intcomma }}</td>
         <td>
-            {% if b.diff > 0 %}
-                <span style="color:red;">+{{ b.diff|intcomma }}</span>
+            {% if b.diff < 0 %}
+                <span style="color:red;">{{ b.diff|intcomma }}</span>
             {% else %}
                 {{ b.diff|intcomma }}
             {% endif %}
@@ -125,7 +125,13 @@
         <td><strong>合計</strong></td>
         <td>{{ project.estimated_budget|intcomma }}</td>
         <td>{{ project.total_actual_amount|intcomma }}</td>
-        <td>{{ total_diff }}</td>
+        <td>
+            {% if project.total_diff < 0 %}
+                <span style="color:red;">{{ project.total_diff|intcomma }}</span>
+            {% else %}
+                {{ project.total_diff|intcomma }}
+            {% endif %}
+        </td>
         <td>{{ project.consumption_rate }}%</td>
     </tr>
 </table>

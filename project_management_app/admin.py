@@ -40,7 +40,7 @@ class CustomUserAdmin(UserAdmin):
 
 class TaskInline(admin.TabularInline):
     model = Task
-    #extra = 1
+    extra = 0
     fields = (
         "title",
         "assignee",
@@ -52,12 +52,12 @@ class TaskInline(admin.TabularInline):
 
 class BudgetPlanInline(admin.TabularInline):
     model = BudgetPlan
-    #extra = 1
+    extra = 0
 
 
 class BudgetRecordInline(admin.TabularInline):
     model = BudgetRecord
-    #extra = 1
+    extra = 0
 
 
 @admin.register(Project)

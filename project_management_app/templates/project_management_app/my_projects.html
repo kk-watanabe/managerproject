@@ -9,16 +9,17 @@
         <th>案件名</th>
         <th>ステータス</th>
         <th>進捗</th>
+        <th>期限</th>
         <th>予算消費率</th>
-        <th></th>
-        <th></th>
     </tr>
     {% for project in projects %}
     <tr>
         <td>
-            {{ project.name }}
+            <a href="{% url 'project_detail' project.pk %}">
+                {{ project.name }}
+            </a>
             {% if project.is_over_budget %}
-                <span style="color: red;">⚠ 予算超過</span>
+                <span style="color: red;"><strong>⚠ 予算超過</strong></span>
             {% endif %}
         </td>
         <td>{{ project.get_status_display }}</td>
@@ -34,17 +35,13 @@
                 </div>
             </div>
         </td>
+        <td>
+            {{ project.due_date }}
+            {% if project.is_delayed %}
+                <span style="color: red;"><strong>⚠ 遅延</strong></span>
+            {% endif %}
+        </td>
         <td>{{ project.consumption_rate }}%</td>
-        <td>
-            <a href="{% url 'budget_record_add' project.pk %}">
-                実績入力
-            </a>
-        </td>
-        <td>
-            <a href="{% url 'project_detail' project.pk %}">
-                詳細
-            </a>
-        </td>
     </tr>
     {% endfor %}
 </table>

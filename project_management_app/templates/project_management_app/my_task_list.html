@@ -7,7 +7,7 @@
 
 {% for project in projects %}
     <h3>
-        {{ project.name }} <a href="{% url 'project_detail' project.pk %}"> 詳細</a>
+        <a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a>
             {% if project.is_over_budget %}
             <span class="warning">⚠ 予算超過</span>
         {% endif %}
@@ -22,12 +22,15 @@
             <th>進捗</th>
             <th>期限</th>
             <th></th>
-            <th></th>
         </tr>
 
         {% for task in project.tasks.all %}
         <tr>
-            <td>{{ task.title }}</td>
+            <td>
+                <a href="{% url 'task_detail' task.pk %}">
+                    {{ task.title }}
+                </a>
+            </td>
             <td>{{ task.assignee }}</td>
             <td style="text-align:center;">
                 <div style="background:#eee; width:150px; display:inline-block;">
@@ -44,11 +47,8 @@
             <td>
                 {{ task.due_date }}
                 {% if task.is_delayed %}
-                    <span class="warning">⚠ 遅延</span>
+                    <span class="warning"><strong>⚠ 遅延</strong></span>
                 {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'task_detail' task.pk %}">詳細</a>
             </td>
             <td>
                 {% if request.user == task.assignee or request.user == task.project.applicant %}
@@ -62,6 +62,6 @@
         </tr>
         {% endfor %}
     </table>
-    <br>
+    <br><br>
 {% endfor %}
 {% endblock %}

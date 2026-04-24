@@ -10,6 +10,7 @@ from django.db.models import Q, Prefetch
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from collections import defaultdict
 
 # Create your views here.
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -20,34 +21,42 @@ class HomeView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         
         if user.role == CustomUser.Role.MEMBER:
-            context["tasks"] = Task.objects.filter(
+            tasks = Task.objects.filter(
                 assignee=user
-            ).select_related("project")
+            )
+            context["tasks"] = tasks.select_related("project")
+            context["has_delayed_tasks"] = any(
+                t.is_delayed for t in tasks
+            )
 
         elif user.role == CustomUser.Role.APPLICANT:
-            context["projects"] = Project.objects.filter(
+            projects = Project.objects.filter(
                 applicant=user
-            ).select_related("department")
+            )
+            context["projects"] = projects.select_related("department")
+            context["has_delayed_tasks"] = any(
+                p.has_delayed_tasks for p in projects
+            )
+            context["has_delayed_projects"] = any(
+                p.is_delayed for p in projects
+            )
 
         elif user.role == CustomUser.Role.MANAGER:
-            context["projects"] = Project.objects.filter(
-                department=user.department,)
-            #    status=Project.Status.PENDING_MANAGER,
-            #)
+            projects = Project.objects.filter(
+                department=user.department
+            )
+            context["projects"] = projects
+            context["has_delayed_projects"] = any(
+                p.is_delayed for p in projects
+            )
 
         elif user.role == CustomUser.Role.HQ:
-            context["projects"] = Project.objects.all().select_related(
+            projects = Project.objects.all().select_related(
                 "department", "applicant"
             )
-
-            projects = Project.objects.all()
-
-            context["has_over_budget"] = any(
-                p.total_actual_amount > p.estimated_budget
-                for p in projects
-            )
-            context["over_budget_count"] = sum(
-                1 for p in projects if p.is_over_budget
+            context["projects"] = projects
+            context["has_delayed_projects"] = any(
+                p.is_delayed for p in projects
             )
         
         return context
@@ -519,11 +528,10 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             actual = p.actual or 0
             planned = p.planned_amount or 0
 
-            p.diff = actual - planned
+            p.diff = planned - actual
             p.rate = round(actual / planned * 100, 1) if planned > 0 else 0
 
         context["budget_summary"] = plans
-        context["total_diff"] = project.total_actual_amount - project.estimated_budget
 
         # ■ 明細（全件）
         context["budget_records"] = project.budget_records.select_related(
@@ -643,29 +651,6 @@ class ProjectCommentCreateView(LoginRequiredMixin, View):
             comment.author_id = request.user.id
             comment.save()
 
-            # ★ 通知対象ユーザー収集
-            recipients = set()
-
-            # 申請者
-            if project.applicant:
-                recipients.add(project.applicant)
-
-            # タスク担当者
-            task_users = project.tasks.values_list("assignee", flat=True)
-            users = CustomUser.objects.filter(id__in=task_users)
-            recipients.update(users)
-
-            # ★ 自分は除外
-            recipients.discard(request.user)
-
-            # ★ 通知送信
-            for user in recipients:
-                create_notification(
-                    recipient=user,
-                    project=project,
-                    message=f"{request.user.username}がコメントしました"
-                )
-
         return redirect("project_detail", pk=pk)
 
 
@@ -680,32 +665,37 @@ class TaskCommentCreateView(LoginRequiredMixin, View):
             comment.author_id = request.user.id
             comment.save()
 
-            recipients = set()
-
-            # 案件申請者
-            if task.project.applicant:
-                recipients.add(task.project.applicant)
-
-            # タスク担当者
-            if task.assignee:
-                recipients.add(task.assignee)
-
-            # 同一案件の他タスク担当者
-            users = CustomUser.objects.filter(
-                assigned_tasks__project=task.project
-            ).distinct()
-
-            recipients.update(users)
-
-            recipients.discard(request.user)
-
-            for user in recipients:
-                create_notification(
-                    recipient=user,
-                    project=task.project,
-                    message=f"{request.user.username}がコメントしました"
-                )
-
         return redirect("task_detail", pk=pk)
 
 
+class DepartmentOverBudgetProjectListView(LoginRequiredMixin, ListView):
+    model = Project
+    template_name = "project_management_app/department_over_budget_projects.html"
+    context_object_name = "projects"
+
+    def get_queryset(self):
+        user = self.request.user
+
+        projects = Project.objects.filter(department=user.department)
+
+        return [p for p in projects if p.is_over_budget][:20]
+    
+
+class HQOverBudgetProjectListView(LoginRequiredMixin, ListView):
+    model = Project
+    template_name = "project_management_app/hq_over_budget_projects.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        projects = Project.objects.select_related("department")
+
+        over_budget = [p for p in projects if p.is_over_budget]
+
+        grouped = defaultdict(list)
+        for p in over_budget:
+            grouped[p.department].append(p)
+
+        context["grouped_projects"] = dict(grouped)
+
+        return context

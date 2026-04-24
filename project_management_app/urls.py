@@ -10,6 +10,8 @@ from .views import (
     ProjectCreateView,
     ProjectStartView,
     ProjectDetailView,
+    DepartmentOverBudgetProjectListView,
+    HQOverBudgetProjectListView,
     BudgetPlanDetailView,
     BudgetRecordCreateView,
     DepartmentProjectListView,
@@ -36,6 +38,9 @@ urlpatterns = [
     path("projects/new/", ProjectCreateView.as_view(), name="project_create"),
     path("projects/<int:pk>/start/", ProjectStartView.as_view(), name="project_start"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="project_detail"),
+    
+    path("projects/over-budget/hq/", HQOverBudgetProjectListView.as_view(), name="hq_over_budget_projects"),
+    path("projects/over-budget/manager/", DepartmentOverBudgetProjectListView.as_view(), name="department_over_budget_projects"),
 
     path("projects/<int:pk>/budget/", BudgetPlanDetailView.as_view(), name="budget_plan_detail"),
     path("projects/<int:pk>/budget/add/", BudgetRecordCreateView.as_view(), name="budget_record_add"),

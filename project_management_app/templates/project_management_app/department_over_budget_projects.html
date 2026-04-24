@@ -1,0 +1,39 @@
+{% extends "project_management_app/base.html" %}
+{% load humanize%}
+{% block title %}予算超過案件一覧{% endblock %}
+
+{% block content %}
+<h2>予算超過案件一覧</h2>
+
+<table>
+    <tr>
+        <th>案件名</th>
+        <th>担当者</th>
+        <th>予算</th>
+        <th>実績</th>
+        <th>差額</th>
+    </tr>
+
+    {% for p in projects %}
+    <tr>
+        <td>
+            <a href="{% url 'project_detail' p.pk %}">
+                {{ p.name }}
+            </a>
+        </td>
+        <td>{{ p.applicant }}</td>
+        <td>{{ p.estimated_budget|intcomma }} 円</td>
+        <td>{{ p.total_actual_amount|intcomma }} 円</td>
+        <td>
+            {% if p.total_diff < 0 %}
+                <span style="color:red;">{{ p.total_diff|intcomma }} 円</span>
+            {% else %}
+                {{ p.total_diff|intcomma }} 円
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <p>予算超過案件はありません。</p>
+    {% endfor %}
+</table>
+{% endblock %}

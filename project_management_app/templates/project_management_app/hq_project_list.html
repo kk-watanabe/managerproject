@@ -15,14 +15,16 @@
             <th>申請者</th>
             <th>ステータス</th>
             <th>進捗</th>
+            <th>期限</th>
             <th>予算消費率</th>
-            <th></th>
         </tr>
 
         {% for project in department.projects.all %}
         <tr>
             <td>
-                {{ project.name }}
+                <a href="{% url 'project_detail' project.pk %}">
+                    {{ project.name }}
+                </a>
                 {% if project.is_over_budget %}
                     <span class="warning">⚠ 予算超過</span>
                 {% endif %}
@@ -41,12 +43,13 @@
                     </div>
                 </div>
             </td>
-            <td>{{ project.consumption_rate }}%</td>
             <td>
-                <a href="{% url 'project_detail' project.pk %}">
-                    詳細
-                </a>
+                {{ project.due_date }}
+                {% if project.is_delayed %}
+                    <span style="color: red;"><strong>⚠ 遅延</strong></span>
+                {% endif %}
             </td>
+            <td>{{ project.consumption_rate }}%</td>
         </tr>
         {% endfor %}
     </table>
