@@ -81,9 +81,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "questdb",
+        "NAME": "postgres",
         "USER": "postgres",
-        "PASSWORD": "nicola138",
+        "PASSWORD": "password",
         "HOST": "questdb.cr0yqauyup51.ap-northeast-1.rds.amazonaws.com",
         "PORT": "5432",
     }
