@@ -16,7 +16,7 @@ http://54.249.195.175/
 |ID|Pass|Role|
 |---|---|---|
 |applicant_infra|jptintern|申請者|
-|manager_infra|jptintern|申請者|
+|manager_infra|jptintern|部門管理者|
 
 ### 本部
 |ID|Pass|Role|
