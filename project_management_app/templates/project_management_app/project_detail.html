@@ -171,7 +171,11 @@
     </tr>
     {% for approval in project.approvals.all %}
     <tr>
-        <td>{{ approval.get_level_display }}</td>
+        <td>
+            <a href="{% url 'approval_detail' approval.pk %}">
+                {{ approval.get_level_display }}
+            </a>
+        </td>
         <td>{{ approval.approver.username }}</td>
         <td>{{ approval.get_examination_display }}</td>
         <td>{{ approval.examined_at }}</td>

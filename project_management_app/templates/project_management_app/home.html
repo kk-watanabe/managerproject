@@ -10,17 +10,23 @@
     <a href="{% url 'project_create' %}">新規案件申請</a><br>
     <a href="{% url 'my_projects' %}">自案件一覧</a>
     {% if has_delayed_projects %}
-        <span class="warning">⚠ 遅延あり</span>
-    {% endif %}
-{% endif %}
-
-{% if request.user.role == "member" or request.user.role == "applicant" %}
-    <h3>担当者メニュー</h3>
+        <span class="warning">⚠ 遅延案件あり</span>
+    {% endif %}<br>
     <a href="{% url 'my_tasks' %}">
         タスク一覧
     </a>
     {% if has_delayed_tasks %}
-        <span class="warning">⚠ 遅延あり</span>
+        <span class="warning">⚠ 遅延タスクあり</span>
+    {% endif %}
+{% endif %}
+
+{% if request.user.role == "member" %}
+    <h3>タスク担当者メニュー</h3>
+    <a href="{% url 'my_tasks' %}">
+        タスク一覧
+    </a>
+    {% if has_delayed_tasks %}
+        <span class="warning">⚠ 遅延タスクあり</span>
     {% endif %}
 {% endif %}
 
@@ -28,7 +34,7 @@
     <h3>部門管理メニュー</h3>
     <a href="{% url 'department_project_list' %}">自部門案件一覧</a>
     {% if has_delayed_projects %}
-        <span class="warning">⚠ 遅延あり</span>
+        <span class="warning">⚠ 遅延案件あり</span>
     {% endif %}<br>
     <a href="{% url 'department_approval_list' %}" class="approval-link {% if pending_approval_count > 0 %}unread{% endif %}">
         一次承認待ち一覧
@@ -47,7 +53,7 @@
         全案件一覧
     </a>
     {% if has_delayed_projects %}
-        <span class="warning">⚠ 遅延あり</span>
+        <span class="warning">⚠ 遅延案件あり</span>
     {% endif %}
     <br>
     <a href="{% url 'hq_approval_list' %}" class="approval-link {% if pending_approval_count > 0 %}unread{% endif %}">

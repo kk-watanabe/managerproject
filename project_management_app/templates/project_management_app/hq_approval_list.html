@@ -34,7 +34,11 @@
 
     {% for a in approval_histories %}
     <tr>
-        <td>{{ a.project.name }}</td>
+        <td>
+            <a href="{% url 'project_detail' a.project.pk %}">
+                {{ a.project.name }}
+            </a>
+        </td>
         <td>
             {% if a.examination == a.Examination.APPROVED %}
                 承認

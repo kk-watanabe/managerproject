@@ -1,0 +1,20 @@
+{% extends "project_management_app/base.html" %}
+
+{% block title %}案件詳細{% endblock %}
+
+{% block content %}
+<h2>承認詳細</h2>
+
+<p>案件：{{ approval.project.name }}</p>
+<p>承認レベル：{{ approval.get_level_display }}</p>
+<p>結果：{{ approval.get_examination_display }}</p>
+<p>承認者：{{ approval.approver }}</p>
+<p>日時：{{ approval.examined_at }}</p>
+
+{% if approval.comment %}
+    <p>コメント：</p>
+    <div style="border:1px solid #ddd; padding:10px;">
+        {{ approval.comment }}
+    </div>
+{% endif %}
+{% endblock %}

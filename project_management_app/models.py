@@ -217,6 +217,7 @@ class Task(models.Model):
         super().save(*args, **kwargs)
         self.project.update_progress()
 
+
 class Approval(models.Model):
     class Examination(models.TextChoices):
         APPROVED = "approved", "承認"
@@ -254,7 +255,7 @@ class Approval(models.Model):
     class Meta:
         verbose_name = "承認履歴"
         verbose_name_plural = "承認履歴"
-        ordering = ["-examined_at"]
+        ordering = ["examined_at"]
 
         constraints = [
             models.UniqueConstraint(
@@ -310,7 +311,7 @@ class BudgetPlan(models.Model):
         verbose_name_plural = "予算内訳"
 
     def __str__(self):
-        return f"{self.project.name} - {self.category}"
+        return f"{self.category} - {self.project.name}"
     
 
 class BudgetRecord(models.Model):

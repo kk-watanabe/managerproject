@@ -6,7 +6,7 @@ from .models import Project, Task, CustomUser, Approval, Notification, BudgetPla
 from .forms import TaskUpdateForm, ProjectCreateForm, ApprovalForm, BudgetRecordForm, TaskCreateForm, CommentForm, BudgetPlanFormSet
 from django.contrib import messages
 from .utils import create_notification
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Sum
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -104,6 +104,7 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         task.save()
         return redirect("project_detail", pk=self.project.pk)
 
+    # テンプレートでproject情報を使う場合のため
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["project"] = self.project
@@ -332,6 +333,7 @@ class DepartmentApprovalListView(LoginRequiredMixin, ListView):
 
         return context
 
+
 class DepartmentApprovalView(LoginRequiredMixin, FormView):
     template_name = "project_management_app/department_approval.html"
     form_class = ApprovalForm
@@ -491,8 +493,6 @@ class HQApprovalView(LoginRequiredMixin, FormView):
         context["project"] = self.project
         return context
 
-
-from django.db.models import Sum, Prefetch
 
 class ProjectDetailView(LoginRequiredMixin, DetailView):
     model = Project
@@ -699,3 +699,9 @@ class HQOverBudgetProjectListView(LoginRequiredMixin, ListView):
         context["grouped_projects"] = dict(grouped)
 
         return context
+
+
+class ApprovalDetailView(LoginRequiredMixin, DetailView):
+    model = Approval
+    template_name = "project_management_app/approval_detail.html"
+    context_object_name = "approval"

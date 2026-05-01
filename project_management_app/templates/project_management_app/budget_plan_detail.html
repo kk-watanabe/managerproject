@@ -21,6 +21,10 @@
         <td colspan="2">内訳は登録されていません</td>
     </tr>
     {% endfor %}
+    <tr>
+        <td><strong>合計</strong></td>
+        <td>{{ project.estimated_budget|intcomma }} 円</td>
+    </tr>
 </table>
 
 <br>
