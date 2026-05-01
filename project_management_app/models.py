@@ -211,9 +211,9 @@ class Task(models.Model):
             self.due_date
             and self.due_date < timezone.now().date()
             and self.status != self.Status.DONE
-            and (self.status == self.Status.APPROVED
+            and (self.project.status == self.project.Status.APPROVED
                  or
-                 self.status == self.Status.IN_PROGRESS)
+                 self.project.status == self.project.Status.IN_PROGRESS)
         )
     
     def save(self, *args, **kwargs):
