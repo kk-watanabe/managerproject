@@ -10,11 +10,10 @@
 <p>結果：{{ approval.get_examination_display }}</p>
 <p>承認者：{{ approval.approver }}</p>
 <p>日時：{{ approval.examined_at }}</p>
-
-{% if approval.comment %}
-    <p>コメント：</p>
-    <div style="border:1px solid #ddd; padding:10px;">
+<p>コメント：</p>
+<div style="border:1px solid #ddd; padding:10px;">
+    {% if approval.comment %}
         {{ approval.comment }}
-    </div>
-{% endif %}
+    {% endif %}
+
 {% endblock %}
