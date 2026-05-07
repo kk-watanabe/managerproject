@@ -11,6 +11,14 @@ class TaskCreateForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 3}),
             "due_date": forms.DateInput(attrs={"type": "date"}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        self.department = kwargs.pop("department", None)
+        super().__init__(*args, **kwargs)
+
+        self.fields["assignee"].queryset = (
+            self.department.users.order_by("id")
+        )
 
 
 class TaskUpdateForm(forms.ModelForm):

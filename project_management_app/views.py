@@ -98,6 +98,11 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         )
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["department"] = self.project.department
+        return kwargs
+    
     def form_valid(self, form):
         project = self.project
         task = form.save(commit=False)
