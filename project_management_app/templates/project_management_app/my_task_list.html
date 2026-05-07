@@ -35,9 +35,9 @@
             <td>{{ task.assignee }}</td>
             <td>
                 {% if task.is_delayed %}
-                    <span class="warning"><strong>⚠ {{ task.status }}</strong></span>
+                    <span class="warning"><strong>⚠ {{ task.get_status_display }}</strong></span>
                 {% else %}
-                    {{ task.status }}
+                    {{ task.get_status_display }}
                 {% endif %}
             </td>
             <td style="text-align:center;">
