@@ -23,6 +23,10 @@
         <td>{{ task.assignee }}</td>
     </tr>
     <tr>
+        <th>ステータス</th>
+        <td>{{ task.status }}</td>
+    </tr>
+    <tr>
         <th>進捗</th>
         <td style="text-align:center;">
             <div style="background:#eee; width:150px; display:inline-block;">
@@ -41,9 +45,6 @@
         <th>期限</th>
         <td>
             {{ task.due_date }}
-            {% if task.is_delayed %}
-                <span class="warning">⚠ 遅延</span>
-            {% endif %}
         </td>
     </tr>
 </table>

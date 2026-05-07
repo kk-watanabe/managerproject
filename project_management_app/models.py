@@ -207,7 +207,7 @@ class Task(models.Model):
     
     @property
     def is_delayed(self):
-        return bool(
+        is_delayed = bool(
             self.due_date
             and self.due_date < timezone.now().date()
             and self.status != self.Status.DONE
@@ -215,6 +215,10 @@ class Task(models.Model):
                  or
                  self.project.status == self.project.Status.IN_PROGRESS)
         )
+        if is_delayed:
+            self.status = self.Status.DELAYED
+        
+        return is_delayed
     
     def save(self, *args, **kwargs):
         if self.progress_rate == 100:

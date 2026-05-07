@@ -40,6 +40,7 @@
     <tr>
         <th>タスク</th>
         <th>担当者</th>
+        <th>ステータス</th>
         <th>進捗</th>
         <th>期限</th>
         <th></th>
@@ -53,6 +54,13 @@
             </a>
         </td>
         <td>{{ task.assignee }}</td>
+        <td>
+            {% if task.is_delayed %}
+                <span class="warning"><strong>⚠ {{ task.status }}</strong></span>
+            {% else %}
+                {{ task.status }}
+            {% endif %}
+        </td>
         <td style="text-align:center;">
             <div style="background:#eee; width:150px; display:inline-block;">
                 <div style="
@@ -67,9 +75,6 @@
         </td>
         <td>
             {{ task.due_date }}
-            {% if task.is_delayed %}
-                <span class="warning"><strong>⚠ 遅延</strong></span>
-            {% endif %}
         </td>
         <td>
             {% if request.user == task.assignee or request.user == task.project.applicant %}
