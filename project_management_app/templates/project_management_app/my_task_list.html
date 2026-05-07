@@ -12,7 +12,7 @@
             <span class="warning">⚠ 予算超過</span>
         {% endif %}
     </h3>
-    {% if request.user == project.applicant and project.status != project.Status.COMPLETED %}
+    {% if request.user == project.applicant %}
         <a href="{% url 'task_create' project.pk %}"><strong>+タスク追加</strong></a>
     {% endif %}
     <table>

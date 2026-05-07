@@ -99,9 +99,16 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
+        project = self.project
         task = form.save(commit=False)
-        task.project = self.project
+        task.project = project
         task.save()
+
+        if project.status == Project.Status.COMPLETED:
+            project.status = Project.Status.IN_PROGRESS
+            project.completed_at = None
+            project.save(update_fields=["status", "completed_at", "updated_at"])
+        
         return redirect("project_detail", pk=self.project.pk)
 
     # テンプレートでproject情報を使う場合のため
