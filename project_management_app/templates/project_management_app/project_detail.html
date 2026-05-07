@@ -33,7 +33,7 @@
 <hr>
 
 <h3>タスク一覧</h3>
-{% if request.user == project.applicant and project.status != project.Status.COMPLETED %}
+{% if request.user == project.applicant %}
     <a href="{% url 'task_create' project.pk %}"><strong>+タスク追加</strong></a>
 {% endif %}
 <table>
