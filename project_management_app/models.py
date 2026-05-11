@@ -58,6 +58,7 @@ class Project(models.Model):
         APPROVED = "approved", "承認済"
         IN_PROGRESS = "in_progress", "進行中"
         COMPLETED = "completed", "完了"
+        DELAYED = "delayed", "遅延"
         REJECTED = "rejected", "却下"
     
     name = models.CharField("案件名", max_length=200)
@@ -130,20 +131,26 @@ class Project(models.Model):
 
     @property
     def is_delayed(self):
-        return bool(
+        is_delayed = bool(
             self.due_date
             and self.due_date < timezone.now().date()
             and (self.status == self.Status.APPROVED
                  or
                  self.status == self.Status.IN_PROGRESS)
         )
+
+        if is_delayed:
+            self.status == self.Status.DELAYED
+        
+        return is_delayed
+    
     @property
     def is_over_budget(self):
         return self.total_actual_amount > self.estimated_budget
     
     @property
     def total_diff(self):
-        return self.estimated_budget - self.total_actual_amount
+        return self.total_actual_amount - self.estimated_budget
 
     def update_progress(self):
         avg_progress = self.tasks.aggregate(

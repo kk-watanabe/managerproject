@@ -22,7 +22,13 @@
                 <span style="color: red;"><strong>⚠ 予算超過</strong></span>
             {% endif %}
         </td>
-        <td>{{ project.get_status_display }}</td>
+        <td>
+            {% if project.is_delayed %}
+                <span style="color: red;"><strong>⚠ {{ project.get_status_display }}</strong></span>
+            {% else %}
+                {{ project.get_status_display }}
+            {% endif %}
+        </td>
         <td style="text-align:center;">
             <div style="background:#eee; width:150px; display:inline-block;">
                 <div style="
@@ -37,9 +43,6 @@
         </td>
         <td>
             {{ project.due_date }}
-            {% if project.is_delayed %}
-                <span style="color: red;"><strong>⚠ 遅延</strong></span>
-            {% endif %}
         </td>
         <td>{{ project.consumption_rate }}%</td>
     </tr>

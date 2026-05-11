@@ -540,7 +540,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             actual = p.actual or 0
             planned = p.planned_amount or 0
 
-            p.diff = planned - actual
+            p.diff = actual - planned
             p.rate = round(actual / planned * 100, 1) if planned > 0 else 0
 
         context["budget_summary"] = plans
