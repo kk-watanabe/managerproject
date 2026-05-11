@@ -30,7 +30,13 @@
                 {% endif %}
             </td>
             <td>{{ project.applicant.username }}</td>
-            <td>{{ project.get_status_display }}</td>
+            <td>
+                {% if project.is_delayed %}
+                    <span style="color: red;"><strong>⚠ {{ project.get_status_display }}</strong></span>
+                {% endif %}
+                    {{ project.get_status_display }}
+                {% endif %}
+            </td>
             <td style="text-align:center;">
                 <div style="background:#eee; width:150px; display:inline-block;">
                     <div style="
