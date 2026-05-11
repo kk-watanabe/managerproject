@@ -33,7 +33,7 @@
             <td>
                 {% if project.is_delayed %}
                     <span style="color: red;"><strong>⚠ {{ project.get_status_display }}</strong></span>
-                {% endif %}
+                {% else %}
                     {{ project.get_status_display }}
                 {% endif %}
             </td>
