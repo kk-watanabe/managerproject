@@ -140,7 +140,7 @@ class Project(models.Model):
         )
 
         if is_delayed:
-            self.status == self.Status.DELAYED
+            self.status = self.Status.DELAYED
         
         return is_delayed
     
