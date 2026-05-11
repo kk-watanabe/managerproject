@@ -114,13 +114,13 @@
     {% for b in budget_summary %}
     <tr>
         <td>{{ b.category }}</td>
-        <td>{{ b.planned_amount|default:0|intcomma }} 円</td>
-        <td>{{ b.actual|default:0|intcomma }} 円</td>
+        <td>{{ b.planned_amount|default:0|intcomma }}</td>
+        <td>{{ b.actual|default:0|intcomma }}</td>
         <td>
             {% if b.diff > 0 %}
-                <span style="color:red;">+{{ b.diff|intcomma }} 円</span>
+                <span style="color:red;">+{{ b.diff|intcomma }}</span>
             {% else %}
-                {{ b.diff|intcomma }} 円
+                {{ b.diff|intcomma }}
             {% endif %}
         </td>
         <td>{{ b.rate }}%</td>
@@ -128,13 +128,13 @@
     {% endfor %}
     <tr>
         <td><strong>合計</strong></td>
-        <td>{{ project.estimated_budget|intcomma }} 円</td>
-        <td>{{ project.total_actual_amount|intcomma }} 円</td>
+        <td>{{ project.estimated_budget|intcomma }}</td>
+        <td>{{ project.total_actual_amount|intcomma }}</td>
         <td>
-            {% if project.total_diff < 0 %}
-                <span style="color:red;">{{ project.total_diff|intcomma }} 円</span>
+            {% if project.total_diff > 0 %}
+                <span style="color:red;">+{{ project.total_diff|intcomma }}</span>
             {% else %}
-                {{ project.total_diff|intcomma }} 円
+                {{ project.total_diff|intcomma }}
             {% endif %}
         </td>
         <td>{{ project.consumption_rate }}%</td>
