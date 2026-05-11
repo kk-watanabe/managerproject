@@ -162,7 +162,7 @@
         <td>{{ r.amount|intcomma }} 円</td>
         <td>{{ r.recorded_at }}</td>
         <td>
-            {% if request.user == task.project.applicant %}   
+            {% if request.user == project.applicant %}   
                 <a href="{% url 'budget_record_delete'  project_pk=project.id record_pk=r.id %}">削除</a>
             {% else %}
                 -
