@@ -25,8 +25,8 @@
         <td>{{ p.estimated_budget|intcomma }} 円</td>
         <td>{{ p.total_actual_amount|intcomma }} 円</td>
         <td>
-            {% if p.total_diff < 0 %}
-                <span style="color:red;">{{ p.total_diff|intcomma }} 円</span>
+            {% if p.total_diff > 0 %}
+                <span style="color:red;">+{{ p.total_diff|intcomma }} 円</span>
             {% else %}
                 {{ p.total_diff|intcomma }} 円
             {% endif %}
