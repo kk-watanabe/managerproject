@@ -14,6 +14,7 @@ from .views import (
     HQOverBudgetProjectListView,
     BudgetPlanDetailView,
     BudgetRecordCreateView,
+    BudgetRecordDeleteView,
     DepartmentProjectListView,
     DepartmentApprovalListView,
     DepartmentApprovalView,
@@ -45,6 +46,7 @@ urlpatterns = [
 
     path("projects/<int:pk>/budget/", BudgetPlanDetailView.as_view(), name="budget_plan_detail"),
     path("projects/<int:pk>/budget/add/", BudgetRecordCreateView.as_view(), name="budget_record_add"),
+    path("projects/<int:project_pk>/budget/<int:record_pk>/delete/", BudgetRecordDeleteView.as_view(), name="budget_record_delete"),
 
     path("department/projects/", DepartmentProjectListView.as_view(), name="department_project_list"),
     path("department/approvals/", DepartmentApprovalListView.as_view(), name="department_approval_list"),

@@ -717,3 +717,34 @@ class ApprovalDetailView(LoginRequiredMixin, DetailView):
     model = Approval
     template_name = "project_management_app/approval_detail.html"
     context_object_name = "approval"
+
+
+class BudgetRecordDeleteView(LoginRequiredMixin, DeleteView):
+    model = BudgetRecord
+    template_name = "project_management_app/budget_record_confirm_delete.html"
+    context_object_name = "budget_record"
+    
+    def dispatch(self, request, *args, **kwargs):
+        budget_record = self.get_object()
+        project = budget_record.project
+
+        # 申請者のみ削除可能
+        if request.user != project.applicant:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_object(self, queryset=None):
+
+        return get_object_or_404(
+            BudgetRecord,
+            pk=self.kwargs["record_pk"],
+            project_id=self.kwargs["project_pk"],
+        )
+
+    def get_success_url(self):
+
+        return reverse_lazy(
+            "project_detail",
+            kwargs={"pk": self.kwargs["project_pk"]},
+        )
