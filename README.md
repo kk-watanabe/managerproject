@@ -57,6 +57,7 @@ http://13.192.197.156/
 |シンプルなログイン画面です。テストアカウントのIDとPassを入力してください。|
 
 <br>
+
 【申請者】
 
 |ホーム画面|新規案件申請|
@@ -66,13 +67,33 @@ http://13.192.197.156/
 
 |自案件一覧|案件詳細|
 |---|---|
-|<img src="https://i.imgur.com/fMjZ8yY.png" width="500">|<img src="https://i.imgur.com/XpUufW3.png" width="500">|
+|<img src="https://i.imgur.com/fMjZ8yY.png" width="500">|<img src="https://i.imgur.com/PDkrl8K.pn" width="500">|
 |自案件一覧は、申請者が申請した案件の一覧です。<br>各案件の案件名、ステータス、全体進捗率、期限、予算消費状況を確認できます。|案件詳細では、案件の基本情報、タスク一覧、予算実績状況、承認履歴などが確認できます。|
 
 |予算実績|通知一覧|
 |---|---|
 |<img src="https://i.imgur.com/sVszXVg.png" width="500">|<img src="https://i.imgur.com/nPuZUtW.png" width="500">|
 |予実管理は、案件申請時に登録した費目に対して実績を入力するシステムとなっています。|通知一覧では、承認フローの審査結果や案件の予算超過が自動で通知されます。|
+
+|タスク一覧|
+|---|
+|<img src="https://i.imgur.com/R5ROgZm.png" width="500">|
+|タスク一覧では自案件のタスクの進行状況を確認します。タスク追加や更新、削除が可能です。|
+
+<br>
+
+【部門管理者】
+
+|ホーム画面|自部門案件一覧|
+|---|---|
+|<img src="https://i.imgur.com/9Cn56Ja.png" width="500">|<img src="https://i.imgur.com/oseiHXt.png" width="500">|
+|||
+
+|承認待ち案件一覧|承認フォーム|
+|---|---|
+|<img src="https://i.imgur.com/xsA6AGr.png" width="500">|<img src="https://i.imgur.com/sBaTJVw.png" width="500">|
+|||
+
 
 <br>
 
