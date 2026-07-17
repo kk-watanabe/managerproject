@@ -2,9 +2,12 @@
 
 ## 開発管理統合アプリケーション（PoC）
 
+<br>
 
 ## アプリケーションURL
 http://13.192.197.156/
+
+<br>
 
 ## テストアカウント一覧
 役割一覧
@@ -13,6 +16,8 @@ http://13.192.197.156/
 - 部門管理者
 - 本部管理者
 
+<br>
+
 開発部
 | ID | Pass | Role |
 | --- | --- | --- |
@@ -20,18 +25,26 @@ http://13.192.197.156/
 | member_dev | jptintern | タスク担当者 |
 | manager_dev | jptintern | 部門管理者 |
 
+<br>
+
 インフラ部
 | ID | Pass | Role |
 | --- | --- | --- |
 | applicant_infra | jptintern | 申請者 |
 | member_infra | jptintern | 部門管理者 |
 
+<br>
+
 本部
 | ID | Pass | Role |
 | --- | --- | --- |
 | hq | a | 本部管理者 |
 
+<br>
+
 ## アプリケーションのイメージ
+
+<br>
 
 ## 機能一覧
 【申請者の機能】
@@ -48,10 +61,16 @@ http://13.192.197.156/
 - 関連部門全案件の一覧・進捗確認
 - 関連部門予算消費状況の確認
 
+<br>
+
 ## ER図
 ![ER図](https://i.imgur.com/5sD6laq.png)
 
+<br>
+
 ## 画面遷移図
+
+<br>
 
 ## 使用技術
 | Category  | Technology Stack |
@@ -62,8 +81,14 @@ http://13.192.197.156/
 | Infrastructure	| Amazon Web Services |
 | etc. | Git, Github |
 
+<br>
+
 ## インフラ構成図
 
+<br>
+
 ## 工夫点
+
+<br>
 
 ## 今後の展望
