@@ -54,7 +54,7 @@ http://13.192.197.156/
 |ログイン画面|
 |-----------|
 |<img src="https://i.imgur.com/Zo0vkRI.png" width="500">|
-|シンプルなログイン画面です。テストアカウントのIDとPassを入力してください。|
+|シンプルなログイン画面です。<br>テストアカウントのIDとPassを入力してください。|
 
 <br>
 
@@ -78,7 +78,7 @@ http://13.192.197.156/
 |タスク一覧|
 |---|
 |<img src="https://i.imgur.com/R5ROgZm.png" width="500">|
-|タスク一覧では自案件のタスクの進行状況を確認します。タスク追加や更新、削除が可能です。|
+|タスク一覧では自案件のタスクの進行状況を確認します。<br>タスク追加や更新、削除が可能です。|
 
 <br>
 
@@ -92,6 +92,20 @@ http://13.192.197.156/
 |承認待ち案件一覧|承認フォーム|
 |---|---|
 |<img src="https://i.imgur.com/xsA6AGr.png" width="500">|<img src="https://i.imgur.com/sBaTJVw.png" width="500">|
+|||
+
+<br>
+
+【本部管理者】
+
+|ホーム画面|全案件一覧|
+|---|---|
+|<img src="https://i.imgur.com/Un4LUD7.png" width="500">|<img src="https://i.imgur.com/514M5Sw.png" width="500">|
+|||
+
+|本部承認待ち案件|予算超過案件一覧|
+|---|---|
+|<img src="https://i.imgur.com/sC7akBu.png" width="500">|<img src="https://i.imgur.com/GkPkS37.png" width="500">|
 |||
 
 
