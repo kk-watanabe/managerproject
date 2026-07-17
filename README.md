@@ -149,6 +149,7 @@ http://13.192.197.156/
 <br>
 
 ## インフラ構成図
+![AWS構成図](https://i.imgur.com/bBSGwTf.png)
 
 <br>
 
