@@ -87,9 +87,9 @@ http://13.192.197.156/
 |ホーム画面|自部門案件一覧|
 |---|---|
 |<img src="https://i.imgur.com/9Cn56Ja.png" width="500">|<img src="https://i.imgur.com/oseiHXt.png" width="500">|
-|||
+|部門管理者用のホーム画面では、自部門案件一覧、部門承認待ち案件一覧、自部門予算超過案件一覧へのリンクがあります。|自部門案件一覧では、自部門の案件全体のステータスや進捗率、予算消費状況等を確認できます。|
 
-|承認待ち案件一覧|承認フォーム|
+|部門承認待ち案件一覧|承認フォーム|
 |---|---|
 |<img src="https://i.imgur.com/xsA6AGr.png" width="500">|<img src="https://i.imgur.com/sBaTJVw.png" width="500">|
 |||
