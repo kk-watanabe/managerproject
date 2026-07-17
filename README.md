@@ -56,6 +56,7 @@ http://13.192.197.156/
 
 <br>
 申請者
+
 |ホーム画面|新規案件申請|
 |---|---|
 |<img src="https://i.imgur.com/4OLvoqy.png" width="500">|<img src="https://i.imgur.com/lsUNNjh.png" width="500">|
