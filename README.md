@@ -14,7 +14,7 @@ http://13.192.197.156/
 
 開発部
 | ID | Pass | Role |
-| ------------- | ------------- | -------------- |
+| -- | ---- | ---- |
 | applicant_dev | jptintern | 申請者 |
 | member_dev | jptintern | タスク担当者 |
 | manager_dev | jptintern | 部門管理者 |
