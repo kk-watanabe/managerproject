@@ -69,6 +69,11 @@ http://13.192.197.156/
 |<img src="https://i.imgur.com/fMjZ8yY.png" width="500">|<img src="https://i.imgur.com/XpUufW3.png" width="500">|
 |自案件一覧は、申請者が申請した案件の一覧です。<br>各案件の案件名、ステータス、全体進捗率、期限、予算消費状況を確認できます。|案件詳細では、案件の基本情報、タスク一覧、予算実績状況、承認履歴などが確認できます。|
 
+|予算実績|通知一覧|
+|---|---|
+|<img src="https://i.imgur.com/sVszXVg.png" width="500">|<img src="https://i.imgur.com/nPuZUtW.png" width="500">|
+|予実管理は、案件申請時に登録した費目に対して実績を入力するシステムとなっています。|通知一覧では、承認フローの審査結果や案件の予算超過が自動で通知されます。|
+
 <br>
 
 ## 主な機能一覧
