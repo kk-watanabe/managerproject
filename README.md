@@ -143,7 +143,7 @@ http://13.192.197.156/
 | Frontend  | HTML, CSS, JavaScript |
 | Backend  | Python3.12.3, Django6.0.2, Gunicorn26.0.0 |
 | Database | PostgreSQL18.3 |
-| Infrastructure	| AWS(EC2, RDS), Nginx1.28.3 |
+| Infrastructure	| AWS(VPC, EC2, RDS), Nginx1.28.3 |
 | etc. | Git, Github |
 
 <br>
