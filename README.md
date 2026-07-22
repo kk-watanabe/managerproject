@@ -27,17 +27,17 @@ http://13.192.197.156/
 開発部
 | ID | Pass | Role |
 | --- | --- | --- |
-| applicant_dev | jptintern | 申請者 |
-| member_dev | jptintern | タスク担当者 |
-| manager_dev | jptintern | 部門管理者 |
+| applicant_dev | taskintern | 申請者 |
+| member_dev | taskintern | タスク担当者 |
+| manager_dev | taskintern | 部門管理者 |
 
 <br>
 
 インフラ部
 | ID | Pass | Role |
 | --- | --- | --- |
-| applicant_infra | jptintern | 申請者 |
-| manager_infra | jptintern | 部門管理者 |
+| applicant_infra | taskintern | 申請者 |
+| manager_infra | taskintern | 部門管理者 |
 
 <br>
 
